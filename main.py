@@ -4,7 +4,6 @@ from sqlalchemy import create_engine, text
 
 app = FastAPI()
 
-# 从 Render 的环境变量里读连接串
 database_url = os.environ.get("DATABASE_URL")
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -18,7 +17,12 @@ def read_root():
 @app.get("/db-test")
 def db_test():
     with engine.connect() as conn:
-        # 把 instruments 换成你在 Supabase 里实际建的表名
-        result = conn.execute(text("SELECT * FROM instruments LIMIT 5"))
-        rows = [dict(row._mapping) for row in result]
-    return {"data": rows}
+        # 查询 public schema 下所有表名
+        result = conn.execute(text("""
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+            ORDER BY table_name
+        """))
+        tables = [row[0] for row in result]
+    return {"tables": tables}
