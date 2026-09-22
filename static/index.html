@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>超市进销存系统</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #f5f6fa; color: #333; padding-bottom: 70px; }
+  header { background: #2c3e50; color: #fff; padding: 16px; font-size: 18px; font-weight: bold; position: sticky; top: 0; z-index: 10; }
+  .container { padding: 12px; }
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+  .card { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+  .card .num { font-size: 22px; font-weight: bold; color: #2c3e50; margin-top: 4px; }
+  .card .label { font-size: 12px; color: #888; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+  .toolbar input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+  .toolbar button { padding: 10px 14px; background: #2c3e50; color: #fff; border: none; border-radius: 8px; font-size: 14px; }
+  table { width: 100%; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); border-collapse: collapse; }
+  th, td { padding: 10px 8px; text-align: left; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+  th { background: #fafafa; color: #666; font-weight: normal; }
+  tr:last-child td { border-bottom: none; }
+  .warn { color: #e74c3c; font-weight: bold; }
+  .ok { color: #27ae60; }
+  .btn-sm { padding: 4px 8px; font-size: 12px; border-radius: 6px; border: none; margin-right: 4px; }
+  .btn-edit { background: #3498db; color: #fff; }
+  .btn-del { background: #e74c3c; color: #fff; }
+  .fab { position: fixed; right: 18px; bottom: 18px; width: 56px; height: 56px; border-radius: 50%; background: #2c3e50; color: #fff; font-size: 28px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 20; }
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+  .modal.show { display: flex; }
+  .modal-box { background: #fff; border-radius: 12px; padding: 18px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+  .modal-box h3 { margin-bottom: 12px; }
+  .form-row { margin-bottom: 10px; }
+  .form-row label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+  .form-row input, .form-row select { width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .modal-actions button { flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 15px; }
+  .btn-primary { background: #2c3e50; color: #fff; }
+  .btn-cancel { background: #eee; color: #333; }
+  .empty { text-align: center; color: #aaa; padding: 40px 0; }
+</style>
+</head>
+<body>
+<header>🛒 超市进销存系统</header>
+<div class="container">
+
+  <!-- 统计看板 -->
+  <div class="cards">
+    <div class="card"><div class="label">商品种类</div><div class="num" id="stat-goods">-</div></div>
+    <div class="card"><div class="label">库存总量</div><div class="num" id="stat-stock">-</div></div>
+    <div class="card"><div class="label">库存预警</div><div class="num warn" id="stat-warn">-</div></div>
+    <div class="card"><div class="label">库存总值(¥)</div><div class="num" id="stat-value">-</div></div>
+  </div>
+
+  <!-- 工具栏 -->
+  <div class="toolbar">
+    <input id="keyword" placeholder="搜索商品名称 / 条码" onkeydown="if(event.key==='Enter')loadGoods()">
+    <button onclick="loadGoods()">搜索</button>
+  </div>
+
+  <!-- 商品表格 -->
+  <table>
+    <thead>
+      <tr><th>名称</th><th>条码</th><th>进价</th><th>售价</th><th>库存</th><th>操作</th></tr>
+    </thead>
+    <tbody id="goods-body">
+      <tr><td colspan="6" class="empty">加载中...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<button class="fab" onclick="openModal()">＋</button>
+
+<!-- 新增/编辑弹窗 -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h3 id="modal-title">新增商品</h3>
+    <input type="hidden" id="f-id">
+    <div class="form-row"><label>商品名称 *</label><input id="f-name" placeholder="如：可口可乐 330ml"></div>
+    <div class="form-row"><label>条码</label><input id="f-barcode" placeholder="扫码或手动输入"></div>
+    <div class="form-row"><label>分类</label><select id="f-category"></select></div>
+    <div class="form-row"><label>单位</label><input id="f-unit" value="件"></div>
+    <div class="form-row"><label>进价 (¥)</label><input id="f-purchase" type="number" step="0.01" value="0"></div>
+    <div class="form-row"><label>售价 (¥)</label><input id="f-sale" type="number" step="0.01" value="0"></div>
+    <div class="form-row"><label>库存数量</label><input id="f-stock" type="number" value="0"></div>
+    <div class="form-row"><label>库存预警值</label><input id="f-warn" type="number" value="10"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-primary" onclick="saveGoods()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "";  // 同域，直接空字符串
+
+// ---------- 看板 ----------
+async function loadDashboard() {
+  const r = await fetch(API + "/api/dashboard");
+  const d = await r.json();
+  document.getElementById("stat-goods").textContent = d.total_goods;
+  document.getElementById("stat-stock").textContent = d.total_stock;
+  document.getElementById("stat-warn").textContent  = d.warn_count;
+  document.getElementById("stat-value").textContent = d.total_value.toFixed(2);
+}
+
+// ---------- 商品列表 ----------
+async function loadGoods() {
+  const kw = document.getElementById("keyword").value.trim();
+  const r = await fetch(API + "/api/goods?keyword=" + encodeURIComponent(kw));
+  const list = await r.json();
+  const tbody = document.getElementById("goods-body");
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">暂无商品</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(g => `
+    <tr>
+      <td>${g.name}</td>
+      <td>${g.barcode || "-"}</td>
+      <td>¥${Number(g.purchase_price).toFixed(2)}</td>
+      <td>¥${Number(g.sale_price).toFixed(2)}</td>
+      <td class="${g.stock <= g.stock_warn ? 'warn' : 'ok'}">${g.stock}</td>
+      <td>
+        <button class="btn-sm btn-edit" onclick='editGoods(${JSON.stringify(g)})'>改</button>
+        <button class="btn-sm btn-del" onclick="delGoods(${g.id})">删</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+// ---------- 分类下拉 ----------
+async function loadCategories() {
+  const r = await fetch(API + "/api/categories");
+  const list = await r.json();
+  const sel = document.getElementById("f-category");
+  sel.innerHTML = '<option value="">未分类</option>' +
+    list.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+}
+
+// ---------- 弹窗 ----------
+function openModal(goods) {
+  document.getElementById("modal").classList.add("show");
+  document.getElementById("modal-title").textContent = goods ? "编辑商品" : "新增商品";
+  document.getElementById("f-id").value       = goods ? goods.id : "";
+  document.getElementById("f-name").value     = goods ? goods.name : "";
+  document.getElementById("f-barcode").value  = goods ? (goods.barcode || "") : "";
+  document.getElementById("f-category").value = goods ? (goods.category_id || "") : "";
+  document.getElementById("f-unit").value     = goods ? (goods.unit || "件") : "件";
+  document.getElementById("f-purchase").value = goods ? goods.purchase_price : 0;
+  document.getElementById("f-sale").value     = goods ? goods.sale_price : 0;
+  document.getElementById("f-stock").value    = goods ? goods.stock : 0;
+  document.getElementById("f-warn").value     = goods ? goods.stock_warn : 10;
+}
+function closeModal() { document.getElementById("modal").classList.remove("show"); }
+
+function editGoods(g) { openModal(g); }
+
+// ---------- 保存 ----------
+async function saveGoods() {
+  const id = document.getElementById("f-id").value;
+  const payload = {
+    name: document.getElementById("f-name").value.trim(),
+    barcode: document.getElementById("f-barcode").value.trim() || null,
+    category_id: document.getElementById("f-category").value ? Number(document.getElementById("f-category").value) : null,
+    unit: document.getElementById("f-unit").value.trim() || "件",
+    purchase_price: Number(document.getElementById("f-purchase").value) || 0,
+    sale_price: Number(document.getElementById("f-sale").value) || 0,
+    stock: Number(document.getElementById("f-stock").value) || 0,
+    stock_warn: Number(document.getElementById("f-warn").value) || 0,
+  };
+  if (!payload.name) { alert("请填写商品名称"); return; }
+
+  const url = id ? API + "/api/goods/" + id : API + "/api/goods";
+  const method = id ? "PUT" : "POST";
+  const r = await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (r.ok) {
+    closeModal();
+    loadGoods();
+    loadDashboard();
+  } else {
+    alert("保存失败：" + await r.text());
+  }
+}
+
+// ---------- 删除 ----------
+async function delGoods(id) {
+  if (!confirm("确定删除该商品？")) return;
+  const r = await fetch(API + "/api/goods/" + id, { method: "DELETE" });
+  if (r.ok) { loadGoods(); loadDashboard(); }
+  else alert("删除失败");
+}
+
+// ---------- 初始化 ----------
+loadDashboard();
+loadCategories();
+loadGoods();
+</script>
+</body>
+</html>
