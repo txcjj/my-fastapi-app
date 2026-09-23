@@ -647,6 +647,9 @@ def ensure_material(payload: EnsureMaterialIn, db: Session = Depends(get_db)):
 # ============================================================
 #  系统接口
 # ============================================================
+# ============================================================
+#  系统接口
+# ============================================================
 @app.get("/", include_in_schema=False)
 def root():
     return FileResponse("static/index.html")
@@ -665,3 +668,4 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+    
