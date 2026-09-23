@@ -95,6 +95,7 @@ class StockInIn(BaseModel):
     source_type: str = "采购"
     source_id: Optional[int] = None
     operator_id: Optional[int] = None
+    status: str = "pending"    # ← 加这一行
 
 class StockInItemIn(BaseModel):
     stock_in_id: int
