@@ -649,7 +649,7 @@ def ensure_material(payload: EnsureMaterialIn, db: Session = Depends(get_db)):
 # ============================================================
 @app.get("/", include_in_schema=False)
 def root():
-    return FileResponse("new3.0.html")
+    return FileResponse("static/index.html")
 
 
 @app.get("/api/health", tags=["系统"])
