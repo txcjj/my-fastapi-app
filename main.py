@@ -4,6 +4,7 @@ FastAPI + SQLAlchemy + PostgreSQL
 """
 import os
 import logging
+from fastapi.responses import FileResponse
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import (
@@ -483,15 +484,11 @@ register_crud(TaxYearly,         TaxYearlyIn,                 "/tax-yearly",    
 # ============================================================
 #  系统接口
 # ============================================================
-@app.get("/", tags=["系统"])
+@app.get("/", include_in_schema=False)
 def root():
-    return {
-        "app": "餐饮进销存系统 API",
-        "version": "1.0.0",
-        "tables": 27,
-        "docs": "/docs",
-        "health": "/api/health",
-    }
+    return FileResponse("static/index.html")
+
+
 
 
 @app.get("/api/health", tags=["系统"])
