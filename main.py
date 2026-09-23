@@ -146,6 +146,7 @@ class StockIn(Base):
     source_type = Column(String(20), default="采购")
     source_id = Column(BigInteger)
     operator_id = Column(BigInteger)
+status = Column(String(20), default="pending")     # ← 加这一行
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class StockInItem(Base):
