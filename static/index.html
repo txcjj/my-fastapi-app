@@ -113,7 +113,6 @@
     </div>
 
     <div class="content">
-      <!-- 首页 -->
       <div class="page active" id="page-dashboard">
         <h1 class="page-title">首页看板</h1>
         <p class="page-sub">实时经营概况</p>
@@ -125,7 +124,6 @@
         </div>
       </div>
 
-      <!-- 供应商 -->
       <div class="page" id="page-suppliers">
         <h1 class="page-title">供应商管理</h1>
         <p class="page-sub">维护供货商基本信息</p>
@@ -141,7 +139,6 @@
         </div>
       </div>
 
-      <!-- 采购管理 -->
       <div class="page" id="page-purchase">
         <h1 class="page-title">采购管理</h1>
         <p class="page-sub">直接填写原材料名称，提交时自动建档</p>
@@ -175,7 +172,6 @@
         </div>
       </div>
 
-      <!-- 入库管理 -->
       <div class="page" id="page-stockin">
         <h1 class="page-title">入库管理</h1>
         <p class="page-sub">关联已审批的采购单，填写生产日期与保质期</p>
@@ -213,7 +209,6 @@
         </div>
       </div>
 
-      <!-- 库存管理 -->
       <div class="page" id="page-inventory">
         <h1 class="page-title">实时库存</h1>
         <p class="page-sub">当前各仓库原材料库存</p>
@@ -237,7 +232,6 @@
         </div>
       </div>
 
-      <!-- 菜品与配方 -->
       <div class="page" id="page-dishes">
         <h1 class="page-title">菜品与配方</h1>
         <p class="page-sub">维护菜品及 BOM 配方</p>
@@ -278,7 +272,6 @@
         </div>
       </div>
 
-      <!-- 销售导入 -->
       <div class="page" id="page-salesimport">
         <h1 class="page-title">销售数据导入</h1>
         <p class="page-sub">记录 POS 导入批次</p>
@@ -302,7 +295,6 @@
         </div>
       </div>
 
-      <!-- 财务 -->
       <div class="page" id="page-finance">
         <h1 class="page-title">财务管理</h1>
         <p class="page-sub">每日成本与固定资产</p>
@@ -327,7 +319,6 @@
         </div>
       </div>
 
-      <!-- 报表 -->
       <div class="page" id="page-reports">
         <h1 class="page-title">报表中心</h1>
         <p class="page-sub">数据统计报表</p>
@@ -341,7 +332,6 @@
         </div>
       </div>
 
-      <!-- 系统设置 -->
       <div class="page" id="page-settings">
         <h1 class="page-title">系统设置</h1>
         <p class="page-sub">用户与权限管理</p>
@@ -356,7 +346,6 @@
     </div>
   </div>
 </div>
-
 <script>
 const API_BASE = "";
 const STORE_ID = 1;
@@ -605,11 +594,21 @@ async function loadPurchase() {
     tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
   }
 
+  // 同步入库下拉
   const siSel = document.getElementById('si-po-select');
   if (siSel) {
-    siSel.innerHTML = '<option value="">请选择已审批的采购单</option>' +
-      allPurchaseOrders.filter(p => p.status === 'approved' || p.status === 'pending')
-        .map(p => `<option value="${p.id}">${p.order_no}</option>`).join('');
+    const opts = [];
+    for (const p of allPurchaseOrders) {
+      if (p.status !== 'approved') continue;
+      try {
+        const chk = await apiGet(`/api/purchase-orders/${p.id}/can-stock-in`);
+        if (chk.ok) opts.push(`<option value="${p.id}">${p.order_no}</option>`);
+      } catch (e) {}
+    }
+    siSel.innerHTML = '<option value="">请选择已审批的采购单</option>' + opts.join('');
+    if (!opts.length) {
+      siSel.innerHTML = '<option value="">暂无可入库的采购单</option>';
+    }
   }
 }
 
@@ -622,15 +621,25 @@ function renderPurchaseOrders(list) {
                   p.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
     const label = p.status === 'approved' ? '已审批' :
                   p.status === 'rejected' ? '已驳回' : '待审批';
+    const buyerName = CACHE.users.find(u => u.id === p.created_by)?.name || p.created_by || '—';
+
+    let actions = '';
+    if (p.status === 'pending') {
+      actions = `
+        <button class="btn btn-primary btn-sm" onclick="approvePO(${p.id})">审批</button>
+        <button class="btn btn-danger btn-sm" onclick="delPurchase(${p.id})">删除</button>`;
+    } else if (p.status === 'approved') {
+      actions = `<span class="text-muted" style="font-size:12px;">已锁定</span>`;
+    } else {
+      actions = `<button class="btn btn-danger btn-sm" onclick="delPurchase(${p.id})">删除</button>`;
+    }
+
     return `<tr>
       <td>${p.order_no}</td>
       <td>${sup ? sup.name : p.supplier_id}</td>
-      <td>${CACHE.users.find(u => u.id === p.created_by)?.name || p.created_by || '—'}</td>
+      <td>${buyerName}</td>
       <td><span class="badge ${badge}">${label}</span></td>
-      <td>
-        ${p.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approvePO(${p.id}, '${p.order_no}', ${p.supplier_id}, ${p.created_by || 'null'})">审批</button>` : ''}
-        <button class="btn btn-danger btn-sm" onclick="delPurchase(${p.id})">删除</button>
-      </td>
+      <td>${actions}</td>
     </tr>`;
   }).join('');
 }
@@ -678,7 +687,7 @@ async function submitPurchase() {
     unit_price: num(tr.querySelector('.po-price')?.value),
   })).filter(it => it.name && it.quantity > 0);
 
-  if (!items.length) { toast('请填写至少一条有效明细（原材料名称不能为空）', 'error'); return; }
+  if (!items.length) { toast('请填写至少一条有效明细', 'error'); return; }
 
   const total = items.reduce((s, it) => s + it.quantity * it.unit_price, 0);
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -719,17 +728,73 @@ async function submitPurchase() {
   }
 }
 
-async function approvePO(id, orderNo, supplierId, createdBy) {
-  if (!confirm('确认通过审批？')) return;
+async function approvePO(id) {
+  const po = allPurchaseOrders.find(p => p.id === id);
+  if (!po) { toast('采购单不存在', 'error'); return; }
+
+  // 拉明细
+  let items = [];
+  try {
+    const all = await apiGet('/api/purchase-order-items');
+    items = all.filter(it => String(it.purchase_order_id) === String(id));
+  } catch (e) { console.error(e); }
+
+  const sup = CACHE.suppliers.find(s => s.id === po.supplier_id);
+  const buyer = CACHE.users.find(u => u.id === po.created_by);
+
+  let total = 0;
+  const rows = items.map(it => {
+    const mat = CACHE.materials.find(m => m.id === it.material_id);
+    const amt = num(it.quantity) * num(it.unit_price);
+    total += amt;
+    return `<tr>
+      <td>${mat ? mat.name : it.material_id}</td>
+      <td>${it.quantity} ${mat ? mat.unit : ''}</td>
+      <td>${fmt(it.unit_price)}</td>
+      <td>${fmt(amt)}</td>
+    </tr>`;
+  }).join('');
+
+  const body = `
+    <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-bottom:12px;">
+      <div><label class="text-muted" style="font-size:12px;">供应商</label><div style="font-weight:600;margin-top:4px;">${sup ? sup.name : po.supplier_id}</div></div>
+      <div><label class="text-muted" style="font-size:12px;">采购人</label><div style="font-weight:600;margin-top:4px;">${buyer ? buyer.name : po.created_by || '—'}</div></div>
+      <div><label class="text-muted" style="font-size:12px;">单号</label><div style="font-weight:600;margin-top:4px;">${po.order_no}</div></div>
+      <div><label class="text-muted" style="font-size:12px;">总金额</label><div style="font-weight:600;margin-top:4px;color:var(--primary);">${fmt(total)}</div></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px;">采购明细</div>
+    <table>
+      <thead><tr><th>原材料</th><th>数量</th><th>单价</th><th>金额</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">无明细</td></tr>'}</tbody>
+    </table>
+    <div class="alert alert-warn" style="margin-top:12px;margin-bottom:0;">
+      ⚠️ 通过审批后，该采购单将被锁定，不可再删除或修改。
+    </div>`;
+
+  openModal({
+    title: `审批采购单 ${po.order_no}`,
+    width: 680,
+    body,
+    footer: `
+      <button class="btn btn-danger" onclick="finishApprovePO(${po.id}, 'rejected')">驳回</button>
+      <button class="btn btn-primary" onclick="finishApprovePO(${po.id}, 'approved')">通过审批</button>`
+  });
+}
+
+async function finishApprovePO(id, result) {
+  const po = allPurchaseOrders.find(p => p.id === id);
+  if (!po) { toast('采购单不存在', 'error'); closeModal(); return; }
   try {
     await apiPut(`/api/purchase-orders/${id}`, {
-      store_id: STORE_ID,
-      supplier_id: supplierId,
-      order_no: orderNo,
-      status: 'approved',
-      created_by: createdBy,
+      store_id: po.store_id,
+      supplier_id: po.supplier_id,
+      order_no: po.order_no,
+      status: result,
+      created_by: po.created_by,
     });
-    toast('已通过审批', 'success');
+    toast(result === 'approved' ? '采购单已通过审批' : '采购单已驳回',
+          result === 'approved' ? 'success' : 'error');
+    closeModal();
     await loadPurchase();
   } catch (e) { toast('操作失败：' + e.message, 'error'); }
 }
@@ -762,15 +827,24 @@ async function loadStockInList() {
                     si.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
       const label = si.status === 'approved' ? '已入库' :
                     si.status === 'rejected' ? '已驳回' : '待审批';
+
+      let actions = '';
+      if (si.status === 'pending') {
+        actions = `
+          <button class="btn btn-primary btn-sm" onclick="approveSI(${si.id})">审批</button>
+          <button class="btn btn-danger btn-sm" onclick="delSI(${si.id})">删除</button>`;
+      } else if (si.status === 'approved') {
+        actions = `<span class="text-muted" style="font-size:12px;">已锁定</span>`;
+      } else {
+        actions = `<button class="btn btn-danger btn-sm" onclick="delSI(${si.id})">删除</button>`;
+      }
+
       return `<tr>
         <td>入库单#${si.id}</td>
         <td>${po ? po.order_no : si.source_id || '—'}</td>
         <td>仓库${si.warehouse_id || '—'}</td>
         <td><span class="badge ${badge}">${label}</span></td>
-        <td>
-          ${si.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approveSI(${si.id})">审批</button>` : ''}
-          <button class="btn btn-danger btn-sm" onclick="delSI(${si.id})">删除</button>
-        </td>
+        <td>${actions}</td>
       </tr>`;
     }).join('');
   } catch (e) {
@@ -785,9 +859,19 @@ async function loadPOItems() {
     tbody.innerHTML = emptyRow(7, '📦', '请先选择关联的采购单');
     return;
   }
+
+  // 二次校验
+  try {
+    const chk = await apiGet(`/api/purchase-orders/${poId}/can-stock-in`);
+    if (!chk.ok) {
+      tbody.innerHTML = emptyRow(7, '🚫', chk.reason);
+      return;
+    }
+  } catch (e) {}
+
   tbody.innerHTML = '<tr><td colspan="7" class="loading">加载中...</td></tr>';
   try {
-    let items = await apiGet(`/api/purchase-order-items`);
+    let items = await apiGet('/api/purchase-order-items');
     items = items.filter(it => String(it.purchase_order_id) === String(poId));
     if (!items.length) {
       tbody.innerHTML = emptyRow(7, '📦', '该采购单无明细');
@@ -826,6 +910,7 @@ async function submitStockIn() {
       source_type: '采购',
       source_id: parseInt(poId),
       operator_id: 1,
+      status: 'pending',
     });
 
     for (const tr of rows) {
@@ -853,51 +938,85 @@ async function submitStockIn() {
 }
 
 async function approveSI(id) {
-  if (!confirm('确认审批通过？通过后将计入库存。')) return;
+  let si = null;
+  let items = [];
   try {
     const list = await apiGet('/api/stock-in');
-    const si = list.find(x => x.id === id);
-    if (!si) throw new Error('入库单不存在');
+    si = list.find(x => x.id === id);
+    const allItems = await apiGet('/api/stock-in-items');
+    items = allItems.filter(it => String(it.stock_in_id) === String(id));
+  } catch (e) { toast('加载明细失败：' + e.message, 'error'); return; }
 
-    await apiPut(`/api/stock-in/${id}`, {
-      store_id: si.store_id,
-      warehouse_id: si.warehouse_id,
-      source_type: si.source_type,
-      source_id: si.source_id,
-      operator_id: si.operator_id,
-      status: 'approved',
-    });
+  if (!si) { toast('入库单不存在', 'error'); return; }
 
-    const items = await apiGet('/api/stock-in-items');
-    const myItems = items.filter(it => String(it.stock_in_id) === String(id));
-    for (const it of myItems) {
-      const inv = await apiGet('/api/inventory');
-      const exist = inv.find(i => String(i.material_id) === String(it.material_id));
-      if (exist) {
-        const newQty = num(exist.quantity) + num(it.quantity);
-        const newCost = newQty > 0
-          ? (num(exist.quantity) * num(exist.avg_cost) + num(it.quantity) * num(it.unit_cost)) / newQty
-          : num(it.unit_cost);
-        await apiPut(`/api/inventory/${exist.id}`, {
-          store_id: si.store_id,
-          warehouse_id: si.warehouse_id,
-          material_id: it.material_id,
-          quantity: newQty,
-          avg_cost: newCost,
-          last_used_date: exist.last_used_date || null,
-        });
-      } else {
-        await apiPost('/api/inventory', {
-          store_id: si.store_id,
-          warehouse_id: si.warehouse_id,
-          material_id: it.material_id,
-          quantity: num(it.quantity),
-          avg_cost: num(it.unit_cost),
-        });
-      }
-    }
+  const po = allPurchaseOrders.find(p => p.id === si.source_id);
+  const mats = CACHE.materials.length ? CACHE.materials : await apiGet('/api/materials').catch(() => []);
+  CACHE.materials = mats;
 
-    toast('已审批通过，库存已更新', 'success');
+  const rows = items.map(it => {
+    const mat = mats.find(m => m.id === it.material_id);
+    return `<tr>
+      <td>${mat ? mat.name : it.material_id}</td>
+      <td>${it.quantity}</td>
+      <td>${fmt(it.unit_cost)}</td>
+      <td>${it.production_date || '—'}</td>
+      <td>${it.expire_date || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const body = `
+    <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-bottom:12px;">
+      <div><label class="text-muted" style="font-size:12px;">入库单号</label><div style="font-weight:600;margin-top:4px;">#${si.id}</div></div>
+      <div><label class="text-muted" style="font-size:12px;">关联采购单</label><div style="font-weight:600;margin-top:4px;">${po ? po.order_no : si.source_id || '—'}</div></div>
+      <div><label class="text-muted" style="font-size:12px;">入库仓库</label><div style="font-weight:600;margin-top:4px;">仓库 ${si.warehouse_id || '—'}</div></div>
+      <div><label class="text-muted" style="font-size:12px;">提交时间</label><div style="font-weight:600;margin-top:4px;">${(si.created_at || '').replace('T', ' ').slice(0, 19) || '—'}</div></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px;">入库明细</div>
+    <table>
+      <thead><tr><th>原材料</th><th>数量</th><th>单价</th><th>生产日期</th><th>过期日期</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">无明细</td></tr>'}</tbody>
+    </table>
+    <div class="alert alert-warn" style="margin-top:12px;margin-bottom:0;">
+      ⚠️ 通过审批后：<br>
+      • 库存将自动增加<br>
+      • 对应采购单将被锁定<br>
+      • 该入库单不可再删除
+    </div>`;
+
+  openModal({
+    title: `审批入库单 #${si.id}`,
+    width: 720,
+    body,
+    footer: `
+      <button class="btn btn-danger" onclick="finishApproveSI(${id}, 'rejected')">驳回</button>
+      <button class="btn btn-primary" onclick="finishApproveSI(${id}, 'approved')">通过审批并入库</button>`
+  });
+}
+
+async function finishApproveSI(id, result) {
+  if (result === 'rejected') {
+    try {
+      const list = await apiGet('/api/stock-in');
+      const si = list.find(x => x.id === id);
+      await apiPut(`/api/stock-in/${id}`, {
+        store_id: si.store_id,
+        warehouse_id: si.warehouse_id,
+        source_type: si.source_type,
+        source_id: si.source_id,
+        operator_id: si.operator_id,
+        status: 'rejected',
+      });
+      toast('入库单已驳回', 'error');
+      closeModal();
+      await loadStockInList();
+    } catch (e) { toast('操作失败：' + e.message, 'error'); }
+    return;
+  }
+
+  try {
+    const res = await apiPost(`/api/stock-in/${id}/approve`, {});
+    toast(`已审批通过，库存已更新（${res.items} 项），采购单已锁定`, 'success');
+    closeModal();
     await loadStockInList();
   } catch (e) { toast('操作失败：' + e.message, 'error'); }
 }
