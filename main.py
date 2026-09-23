@@ -1,12 +1,12 @@
 """
-餐饮进销存系统 · 后端主程序（Render 云端部署版）
+餐饮进销存系统 · 后端主程序
 FastAPI + SQLAlchemy + PostgreSQL
 """
 import os
 import logging
-from fastapi.responses import FileResponse
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from sqlalchemy import (
     Column, BigInteger, Integer, String, Numeric, Boolean,
     Date, DateTime, JSON, text
@@ -146,7 +146,7 @@ class StockIn(Base):
     source_type = Column(String(20), default="采购")
     source_id = Column(BigInteger)
     operator_id = Column(BigInteger)
-    status = Column(String(20),default="pending")
+    status = Column(String(20), default="pending")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class StockInItem(Base):
@@ -169,7 +169,7 @@ class Inventory(Base):
     material_id = Column(BigInteger, index=True)
     quantity = Column(Numeric(12, 4), default=0)
     avg_cost = Column(Numeric(10, 4), default=0)
-    last_used_date = Column(Date)                                    # ← 新增
+    last_used_date = Column(Date)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 class StockOut(Base):
@@ -323,6 +323,12 @@ class TaxYearly(Base):
 # ============================================================
 #  补充 Pydantic 模型
 # ============================================================
+class EnsureMaterialIn(BaseModel):
+    store_id: int
+    name: str
+    unit: Optional[str] = "kg"
+    latest_purchase_price: Optional[float] = 0
+
 class PosTemplateIn(BaseModel):
     store_id: int
     pos_brand: str
@@ -373,13 +379,12 @@ class TaxYearlyIn(BaseModel):
 # ============================================================
 app = FastAPI(
     title="餐饮进销存系统 API",
-    description="27 张业务表的 RESTful 接口 · 部署于 Render",
+    description="27 张业务表的 RESTful 接口",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
 
-# ---- CORS：允许所有来源（前端可能部署在 Vercel / Netlify 等） ----
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -389,12 +394,11 @@ app.add_middleware(
 )
 
 
-# ---- 启动时建表（带容错，避免冷启动阻塞） ----
 @app.on_event("startup")
 def on_startup():
     try:
         Base.metadata.create_all(bind=engine)
-        logger.info("✅ 数据库表结构已就绪（27 张表）")
+        logger.info("✅ 数据库表结构已就绪")
     except Exception as e:
         logger.error(f"❌ 建表失败：{e}")
 
@@ -451,9 +455,7 @@ def register_crud(model, schema_in, prefix: str, tag: str, search_field: str = N
         return {"ok": True, "deleted_id": item_id}
 
 
-# ============================================================
-#  注册全部 27 张表
-# ============================================================
+# 注册所有表
 register_crud(Store,             schemas.StoreIn,             "/stores",              "门店",        "name")
 register_crud(User,              schemas.UserIn,              "/users",               "用户",        "name")
 register_crud(Supplier,          schemas.SupplierIn,          "/suppliers",           "供应商",      "name")
@@ -462,9 +464,7 @@ register_crud(Category,          schemas.CategoryIn,          "/categories",    
 register_crud(Material,          schemas.MaterialIn,          "/materials",           "原材料",      "name")
 register_crud(Dish,              schemas.DishIn,              "/dishes",              "菜品",        "name")
 register_crud(Bom,               schemas.BomItemIn,           "/bom",                 "配方")
-register_crud(PurchaseOrder,     schemas.PurchaseOrderIn,     "/purchase-orders",     "采购单",      "order_no")
 register_crud(PurchaseOrderItem, schemas.PurchaseItemIn,      "/purchase-order-items","采购单明细")
-register_crud(StockIn,           schemas.StockInIn,           "/stock-in",            "入库单")
 register_crud(StockInItem,       schemas.StockInItemIn,       "/stock-in-items",      "入库明细",    "batch_no")
 register_crud(Inventory,         schemas.MaterialIn,          "/inventory",           "库存")
 register_crud(StockOut,          schemas.StockOutIn,          "/stock-out",           "出库单")
@@ -484,47 +484,136 @@ register_crud(TaxYearly,         TaxYearlyIn,                 "/tax-yearly",    
 
 
 # ============================================================
-#  系统接口
+#  自定义接口（必须放在 register_crud 之后，才能覆盖自动生成的）
 # ============================================================
-@app.get("/", include_in_schema=False)
-def root():
-    return FileResponse("static/index.html")
+
+# ---------- 1. 采购单：审批后禁止删改 ----------
+@app.delete("/api/purchase-orders/{item_id}", tags=["采购单"])
+def delete_purchase_order(item_id: int, db: Session = Depends(get_db)):
+    po = db.query(PurchaseOrder).filter(PurchaseOrder.id == item_id).first()
+    if not po:
+        raise HTTPException(status_code=404, detail="采购单不存在")
+    if po.status == 'approved':
+        raise HTTPException(status_code=400, detail="已审批的采购单不可删除")
+    db.query(PurchaseOrderItem).filter(PurchaseOrderItem.purchase_order_id == item_id).delete()
+    db.delete(po)
+    db.commit()
+    return {"ok": True}
 
 
+@app.put("/api/purchase-orders/{item_id}", tags=["采购单"])
+def update_purchase_order(item_id: int, payload: schemas.PurchaseOrderIn, db: Session = Depends(get_db)):
+    po = db.query(PurchaseOrder).filter(PurchaseOrder.id == item_id).first()
+    if not po:
+        raise HTTPException(status_code=404, detail="采购单不存在")
+    if po.status == 'approved':
+        raise HTTPException(status_code=400, detail="已审批的采购单不可修改")
+    for k, v in payload.model_dump(exclude_unset=True).items():
+        setattr(po, k, v)
+    db.commit()
+    db.refresh(po)
+    return po
 
 
-@app.get("/api/health", tags=["系统"])
-def health(db: Session = Depends(get_db)):
-    try:
-        db.execute(text("SELECT 1"))
-        return {"status": "ok", "database": "connected"}
-    except Exception as e:
-        return {"status": "error", "detail": str(e)}
+# ---------- 2. 采购单能否入库 ----------
+@app.get("/api/purchase-orders/{po_id}/can-stock-in", tags=["入库单"])
+def can_stock_in(po_id: int, db: Session = Depends(get_db)):
+    po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
+    if not po:
+        return {"ok": False, "reason": "采购单不存在"}
+    if po.status != 'approved':
+        return {"ok": False, "reason": "采购单尚未审批"}
+    existing = db.query(StockIn).filter(
+        StockIn.source_id == po_id,
+        StockIn.source_type == '采购',
+        StockIn.status == 'approved'
+    ).first()
+    if existing:
+        return {"ok": False, "reason": f"已于入库单 #{existing.id} 入库"}
+    pending = db.query(StockIn).filter(
+        StockIn.source_id == po_id,
+        StockIn.source_type == '采购',
+        StockIn.status == 'pending'
+    ).first()
+    if pending:
+        return {"ok": False, "reason": f"已有待审批入库单 #{pending.id}"}
+    return {"ok": True, "reason": ""}
 
 
-@app.get("/api/seed-demo", tags=["系统"])
-def seed_demo(db: Session = Depends(get_db)):
-    """初始化演示数据：1 家门店 + 1 个用户。可在首次部署后调用一次。"""
-    if db.query(Store).count() > 0:
-        return {"ok": False, "message": "已有数据，跳过初始化"}
+# ---------- 3. 入库单：审批 + 写库存（一步到位） ----------
+@app.post("/api/stock-in/{item_id}/approve", tags=["入库单"])
+def approve_stock_in(item_id: int, db: Session = Depends(get_db)):
+    si = db.query(StockIn).filter(StockIn.id == item_id).first()
+    if not si:
+        raise HTTPException(status_code=404, detail="入库单不存在")
+    if si.status == 'approved':
+        raise HTTPException(status_code=400, detail="该入库单已审批，不可重复操作")
 
-    store = Store(name="王记炒饭旗舰店", address="上海市静安区XX路88号", tax_rate=0.01)
-    db.add(store); db.commit(); db.refresh(store)
+    # 检查采购单是否已入库
+    existing = db.query(StockIn).filter(
+        StockIn.source_id == si.source_id,
+        StockIn.source_type == '采购',
+        StockIn.status == 'approved',
+        StockIn.id != si.id
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail=f"该采购单已完成入库（入库单 #{existing.id}）")
 
-    user = User(store_id=store.id, name="张店长", role="manager", phone="13800000000")
-    db.add(user); db.commit()
+    # 改状态
+    si.status = 'approved'
 
-    return {"ok": True, "store_id": store.id, "user_id": user.id}
-# ============================================================
-#  按名称确保原材料存在（采购时自动建档）
-# ============================================================
-class EnsureMaterialIn(BaseModel):
-    store_id: int
-    name: str
-    unit: Optional[str] = "kg"
-    latest_purchase_price: Optional[float] = 0
+    # 写库存
+    items = db.query(StockInItem).filter(StockInItem.stock_in_id == item_id).all()
+    for it in items:
+        inv = db.query(Inventory).filter(Inventory.material_id == it.material_id).first()
+        if inv:
+            new_qty = float(inv.quantity or 0) + float(it.quantity or 0)
+            old_qty = float(inv.quantity or 0)
+            old_cost = float(inv.avg_cost or 0)
+            new_cost = (old_qty * old_cost + float(it.quantity or 0) * float(it.unit_cost or 0)) / new_qty if new_qty > 0 else float(it.unit_cost or 0)
+            inv.quantity = new_qty
+            inv.avg_cost = new_cost
+        else:
+            db.add(Inventory(
+                store_id=si.store_id,
+                warehouse_id=si.warehouse_id,
+                material_id=it.material_id,
+                quantity=it.quantity,
+                avg_cost=it.unit_cost,
+            ))
+    db.commit()
+    return {"ok": True, "stock_in_id": item_id, "items": len(items)}
 
 
+# ---------- 4. 入库单：审批后禁止删改 ----------
+@app.delete("/api/stock-in/{item_id}", tags=["入库单"])
+def delete_stock_in(item_id: int, db: Session = Depends(get_db)):
+    si = db.query(StockIn).filter(StockIn.id == item_id).first()
+    if not si:
+        raise HTTPException(status_code=404, detail="入库单不存在")
+    if si.status == 'approved':
+        raise HTTPException(status_code=400, detail="已入库的入库单不可删除")
+    db.query(StockInItem).filter(StockInItem.stock_in_id == item_id).delete()
+    db.delete(si)
+    db.commit()
+    return {"ok": True}
+
+
+@app.put("/api/stock-in/{item_id}", tags=["入库单"])
+def update_stock_in(item_id: int, payload: schemas.StockInIn, db: Session = Depends(get_db)):
+    si = db.query(StockIn).filter(StockIn.id == item_id).first()
+    if not si:
+        raise HTTPException(status_code=404, detail="入库单不存在")
+    if si.status == 'approved':
+        raise HTTPException(status_code=400, detail="已入库的入库单不可修改")
+    for k, v in payload.model_dump(exclude_unset=True).items():
+        setattr(si, k, v)
+    db.commit()
+    db.refresh(si)
+    return si
+
+
+# ---------- 5. 按名称确保原材料存在（采购时自动建档） ----------
 @app.post("/api/materials-ensure", tags=["原材料"])
 def ensure_material(payload: EnsureMaterialIn, db: Session = Depends(get_db)):
     name = payload.name.strip()
@@ -554,11 +643,24 @@ def ensure_material(payload: EnsureMaterialIn, db: Session = Depends(get_db)):
     db.refresh(new_mat)
     return new_mat
 
+
 # ============================================================
-#  Render 启动入口
-#  本地调试：python main.py
-#  Render：  uvicorn main:app --host 0.0.0.0 --port $PORT
+#  系统接口
 # ============================================================
+@app.get("/", include_in_schema=False)
+def root():
+    return FileResponse("new3.0.html")
+
+
+@app.get("/api/health", tags=["系统"])
+def health(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
+
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
