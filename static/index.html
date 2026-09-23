@@ -625,7 +625,7 @@ function renderPurchaseOrders(list) {
     return `<tr>
       <td>${p.order_no}</td>
       <td>${sup ? sup.name : p.supplier_id}</td>
-      <td>${p.created_by || '—'}</td>
+      <td>${CACHE.users.find(u => u.id === p.created_by)?.name || p.created_by || '—'}</td>
       <td><span class="badge ${badge}">${label}</span></td>
       <td>
         ${p.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approvePO(${p.id}, '${p.order_no}', ${p.supplier_id}, ${p.created_by || 'null'})">审批</button>` : ''}
