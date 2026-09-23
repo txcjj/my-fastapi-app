@@ -168,6 +168,7 @@ class Inventory(Base):
     material_id = Column(BigInteger, index=True)
     quantity = Column(Numeric(12, 4), default=0)
     avg_cost = Column(Numeric(10, 4), default=0)
+    last_used_date = Column(Date)                                    # ← 新增
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 class StockOut(Base):
@@ -513,7 +514,44 @@ def seed_demo(db: Session = Depends(get_db)):
     db.add(user); db.commit()
 
     return {"ok": True, "store_id": store.id, "user_id": user.id}
+# ============================================================
+#  按名称确保原材料存在（采购时自动建档）
+# ============================================================
+class EnsureMaterialIn(BaseModel):
+    store_id: int
+    name: str
+    unit: Optional[str] = "kg"
+    latest_purchase_price: Optional[float] = 0
 
+
+@app.post("/api/materials-ensure", tags=["原材料"])
+def ensure_material(payload: EnsureMaterialIn, db: Session = Depends(get_db)):
+    name = payload.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="名称不能为空")
+
+    exist = db.query(Material).filter(
+        Material.store_id == payload.store_id,
+        Material.name == name
+    ).first()
+
+    if exist:
+        if payload.latest_purchase_price and payload.latest_purchase_price > 0:
+            exist.latest_purchase_price = payload.latest_purchase_price
+            db.commit()
+            db.refresh(exist)
+        return exist
+
+    new_mat = Material(
+        store_id=payload.store_id,
+        name=name,
+        unit=payload.unit or "kg",
+        latest_purchase_price=payload.latest_purchase_price or 0,
+    )
+    db.add(new_mat)
+    db.commit()
+    db.refresh(new_mat)
+    return new_mat
 
 # ============================================================
 #  Render 启动入口
