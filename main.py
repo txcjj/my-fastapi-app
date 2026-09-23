@@ -464,6 +464,8 @@ register_crud(Category,          schemas.CategoryIn,          "/categories",    
 register_crud(Material,          schemas.MaterialIn,          "/materials",           "原材料",      "name")
 register_crud(Dish,              schemas.DishIn,              "/dishes",              "菜品",        "name")
 register_crud(Bom,               schemas.BomItemIn,           "/bom",                 "配方")
+register_crud(PurchaseOrder,     schemas.PurchaseOrderIn,     "/purchase-orders",     "采购单",      "order_no")
+register_crud(StockIn,           schemas.StockInIn,           "/stock-in",            "入库单")
 register_crud(PurchaseOrderItem, schemas.PurchaseItemIn,      "/purchase-order-items","采购单明细")
 register_crud(StockInItem,       schemas.StockInItemIn,       "/stock-in-items",      "入库明细",    "batch_no")
 register_crud(Inventory,         schemas.MaterialIn,          "/inventory",           "库存")
