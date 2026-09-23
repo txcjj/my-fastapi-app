@@ -1,319 +1,73 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 移动端视口设置，禁止缩放，适应手机屏幕 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>餐饮店进销存系统</title>
     <style>
-        /* ==========================================
-           1. 全局样式与重置
-           ========================================== */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-        }
+        /* ================= 全局样式 ================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, "PingFang SC", sans-serif; }
+        body { background-color: #f4f6f8; color: #333; padding-bottom: 70px; }
+        
+        /* ================= 顶部导航 ================= */
+        header { background-color: #2c3e50; color: #fff; padding: 15px; font-size: 18px; font-weight: bold; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        header small { font-size: 12px; opacity: 0.8; font-weight: normal; }
 
-        body {
-            background-color: #f4f6f8;
-            color: #333;
-            /* 底部留出导航栏的高度，防止内容被遮挡 */
-            padding-bottom: 70px;
-        }
+        /* ================= 页面容器与切换 ================= */
+        .container { padding: 12px; }
+        .page { display: none; }
+        .page.active { display: block; }
 
-        /* ==========================================
-           2. 顶部标题栏
-           ========================================== */
-        header {
-            background-color: #2c3e50;
-            color: #ffffff;
-            padding: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+        /* ================= 看板卡片 ================= */
+        .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+        .card { background: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .card .label { font-size: 12px; color: #888; }
+        .card .num { font-size: 22px; font-weight: bold; color: #2c3e50; margin-top: 5px; }
+        .card.warn .num { color: #e74c3c; }
 
-        header small {
-            font-size: 12px;
-            opacity: 0.8;
-            font-weight: normal;
-        }
+        /* ================= 子标签样式 ================= */
+        .tabs { display: flex; background: #fff; border-radius: 8px; padding: 4px; margin-bottom: 12px; overflow-x: auto; white-space: nowrap; }
+        .tab { flex: 1; text-align: center; padding: 8px; font-size: 13px; border-radius: 6px; color: #666; cursor: pointer; transition: all 0.2s; }
+        .tab.active { background: #2c3e50; color: #fff; font-weight: bold; }
 
-        /* ==========================================
-           3. 页面容器与切换逻辑
-           ========================================== */
-        .container {
-            padding: 12px;
-        }
+        /* ================= 表格样式 ================= */
+        .table-wrap { overflow-x: auto; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 100%; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+        th { background: #fafafa; color: #666; font-weight: 500; }
+        tr:last-child td { border-bottom: none; }
+        .warn-text { color: #e74c3c; font-weight: bold; }
 
-        /* 页面默认隐藏，只有加上 .active 类的页面才显示 */
-        .page {
-            display: none;
-        }
-        .page.active {
-            display: block;
-        }
+        /* ================= 标题与按钮 ================= */
+        .sec-title { font-size: 15px; font-weight: bold; margin: 15px 0 8px; color: #2c3e50; display: flex; justify-content: space-between; align-items: center; }
+        .btn { padding: 6px 12px; font-size: 12px; border-radius: 6px; border: none; background: #2c3e50; color: #fff; cursor: pointer; }
+        .btn.pri { background: #27ae60; }
+        .btn.warn { background: #e74c3c; }
+        .btn.info { background: #3498db; }
 
-        /* ==========================================
-           4. 数据看板卡片样式
-           ========================================== */
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
-        }
+        /* ================= 底部导航栏 ================= */
+        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: #fff; display: flex; border-top: 1px solid #eee; z-index: 50; }
+        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: #888; cursor: pointer; }
+        .tab-item.active { color: #2c3e50; font-weight: bold; }
+        .tab-item .icon { font-size: 20px; margin-bottom: 2px; }
 
-        .card {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-        }
-
-        .card .label {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .card .num {
-            font-size: 22px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-top: 5px;
-        }
-
-        /* 预警卡片用红色数字提示 */
-        .card.warn .num {
-            color: #e74c3c;
-        }
-
-        /* ==========================================
-           5. 子标签切换样式（如基础数据里的材料/菜品）
-           ========================================== */
-        .tabs {
-            display: flex;
-            background-color: #ffffff;
-            border-radius: 8px;
-            padding: 4px;
-            margin-bottom: 12px;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 8px;
-            font-size: 13px;
-            border-radius: 6px;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .tab.active {
-            background-color: #2c3e50;
-            color: #ffffff;
-            font-weight: bold;
-        }
-
-        /* ==========================================
-           6. 表格样式（手机端横向滚动）
-           ========================================== */
-        .table-wrap {
-            overflow-x: auto;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-            margin-bottom: 15px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            min-width: 100%;
-        }
-
-        th, td {
-            padding: 10px 12px;
-            text-align: left;
-            border-bottom: 1px solid #f0f0f0;
-            white-space: nowrap;
-        }
-
-        th {
-            background-color: #fafafa;
-            color: #666;
-            font-weight: 500;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* 警告文本颜色 */
-        .warn-text {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-
-        /* ==========================================
-           7. 标题与按钮样式
-           ========================================== */
-        .sec-title {
-            font-size: 15px;
-            font-weight: bold;
-            margin: 15px 0 8px;
-            color: #2c3e50;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 6px;
-            border: none;
-            background-color: #2c3e50;
-            color: #ffffff;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn.pri { background-color: #27ae60; }  /* 主要操作绿色 */
-        .btn.warn { background-color: #e74c3c; } /* 警告操作红色 */
-        .btn.info { background-color: #3498db; } /* 信息操作蓝色 */
-
-        /* ==========================================
-           8. 底部导航栏
-           ========================================== */
-        .tab-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background-color: #ffffff;
-            display: flex;
-            border-top: 1px solid #eeeeee;
-            z-index: 50;
-        }
-
-        .tab-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            color: #888;
-            cursor: pointer;
-        }
-
-        .tab-item.active {
-            color: #2c3e50;
-            font-weight: bold;
-        }
-
-        .tab-item .icon {
-            font-size: 20px;
-            margin-bottom: 2px;
-        }
-
-        /* ==========================================
-           9. 弹窗样式（用于新增/编辑数据）
-           ========================================== */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-box {
-            background-color: #ffffff;
-            border-radius: 12px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-box h3 {
-            margin-bottom: 15px;
-            font-size: 16px;
-            color: #2c3e50;
-        }
-
-        .form-row {
-            margin-bottom: 10px;
-        }
-
-        .form-row label {
-            display: block;
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 4px;
-        }
-
-        .form-row input, .form-row select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #dddddd;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .form-row input:focus, .form-row select:focus {
-            border-color: #2c3e50;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .modal-actions button {
-            flex: 1;
-            padding: 11px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .btn-primary { background-color: #2c3e50; color: #ffffff; }
-        .btn-cancel { background-color: #eeeeee; color: #333333; }
-
-        /* 空数据提示 */
-        .empty {
-            text-align: center;
-            color: #aaaaaa;
-            padding: 30px 0;
-            font-size: 13px;
-        }
+        /* ================= 弹窗样式 ================= */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 15px; }
+        .modal.show { display: flex; }
+        .modal-box { background: #fff; border-radius: 12px; padding: 20px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
+        .modal-box h3 { margin-bottom: 15px; font-size: 16px; color: #2c3e50; }
+        .form-row { margin-bottom: 10px; }
+        .form-row label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+        .form-row input, .form-row select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .modal-actions button { flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+        .btn-primary { background: #2c3e50; color: #fff; }
+        .btn-cancel { background: #eee; color: #333; }
+        
+        /* ================= 辅助样式 ================= */
+        .empty { text-align: center; color: #aaa; padding: 30px 0; font-size: 13px; }
+        .sub-form { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -326,118 +80,73 @@
 
 <div class="container">
 
-    <!-- ================= 1. 数据看板页面 ================= -->
+    <!-- ================= 1. 数据看板 ================= -->
     <div id="page-dashboard" class="page active">
         <div class="cards">
-            <div class="card">
-                <div class="label">今日营收</div>
-                <div class="num" id="s-rev">¥0.00</div>
-            </div>
-            <div class="card">
-                <div class="label">今日税前利润</div>
-                <div class="num" id="s-pro">¥0.00</div>
-            </div>
-            <div class="card warn">
-                <div class="label">库存预警</div>
-                <div class="num" id="s-warn">0 项</div>
-            </div>
-            <div class="card">
-                <div class="label">原材料种类</div>
-                <div class="num" id="s-mat">0</div>
-            </div>
+            <div class="card"><div class="label">今日营收</div><div class="num" id="s-rev">¥0.00</div></div>
+            <div class="card"><div class="label">今日税前利润</div><div class="num" id="s-pro">¥0.00</div></div>
+            <div class="card warn"><div class="label">库存预警</div><div class="num" id="s-warn">0 项</div></div>
+            <div class="card"><div class="label">原材料种类</div><div class="num" id="s-mat">0</div></div>
         </div>
         <div class="sec-title">快捷操作</div>
         <div style="display:flex; gap:8px; flex-wrap:wrap">
             <button class="btn pri" onclick="switchPage('master')">➕ 基础数据</button>
             <button class="btn pri" onclick="switchPage('business')">📄 业务单据</button>
+            <button class="btn pri" onclick="switchPage('sales')">💰 销售管理</button>
             <button class="btn pri" onclick="switchPage('inventory')">📦 库存</button>
             <button class="btn pri" onclick="switchPage('reports')">📈 报表</button>
         </div>
     </div>
 
-    <!-- ================= 2. 基础数据页面 ================= -->
+    <!-- ================= 2. 基础数据 ================= -->
     <div id="page-master" class="page">
-        <!-- 二级标签页 -->
         <div class="tabs" id="master-tabs">
             <div class="tab active" onclick="switchMaster('mat')">原材料</div>
             <div class="tab" onclick="switchMaster('dish')">菜品&BOM</div>
             <div class="tab" onclick="switchMaster('sup')">供应商</div>
             <div class="tab" onclick="switchMaster('wh')">仓库</div>
             <div class="tab" onclick="switchMaster('cat')">分类</div>
+            <div class="tab" onclick="switchMaster('store')">门店</div>
+            <div class="tab" onclick="switchMaster('user')">用户</div>
         </div>
-
         <!-- 原材料面板 -->
         <div id="sub-mat">
-            <div class="sec-title">
-                <span>原材料管理</span>
-                <button class="btn pri" onclick="openModal('mat')">+ 新增</button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>名称</th><th>单位</th><th>安全库存</th><th>进价</th><th>操作</th></tr></thead>
-                    <tbody id="tb-mat"></tbody>
-                </table>
-            </div>
+            <div class="sec-title"><span>原材料管理</span><button class="btn pri" onclick="openModal('mat')">+ 新增</button></div>
+            <div class="table-wrap"><table><thead><tr><th>名称</th><th>单位</th><th>安全库存</th><th>进价</th><th>操作</th></tr></thead><tbody id="tb-mat"></tbody></table></div>
         </div>
-
         <!-- 菜品与配方面板 -->
         <div id="sub-dish" style="display:none">
-            <div class="sec-title">
-                <span>菜品管理</span>
-                <button class="btn pri" onclick="openModal('dish')">+ 新增菜品</button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>菜品名称</th><th>售价</th><th>POS编码</th><th>操作</th></tr></thead>
-                    <tbody id="tb-dish"></tbody>
-                </table>
-            </div>
+            <div class="sec-title"><span>菜品管理</span><button class="btn pri" onclick="openModal('dish')">+ 新增菜品</button></div>
+            <div class="table-wrap"><table><thead><tr><th>菜品名称</th><th>售价</th><th>POS编码</th><th>操作</th></tr></thead><tbody id="tb-dish"></tbody></table></div>
         </div>
-
         <!-- 供应商面板 -->
         <div id="sub-sup" style="display:none">
-            <div class="sec-title">
-                <span>供应商管理</span>
-                <button class="btn pri" onclick="openModal('sup')">+ 新增</button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>名称</th><th>联系人</th><th>电话</th><th>操作</th></tr></thead>
-                    <tbody id="tb-sup"></tbody>
-                </table>
-            </div>
+            <div class="sec-title"><span>供应商管理</span><button class="btn pri" onclick="openModal('sup')">+ 新增</button></div>
+            <div class="table-wrap"><table><thead><tr><th>名称</th><th>联系人</th><th>电话</th><th>操作</th></tr></thead><tbody id="tb-sup"></tbody></table></div>
         </div>
-
         <!-- 仓库面板 -->
         <div id="sub-wh" style="display:none">
-            <div class="sec-title">
-                <span>仓库管理</span>
-                <button class="btn pri" onclick="openModal('wh')">+ 新增</button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>名称</th><th>类型</th><th>操作</th></tr></thead>
-                    <tbody id="tb-wh"></tbody>
-                </table>
-            </div>
+            <div class="sec-title"><span>仓库管理</span><button class="btn pri" onclick="openModal('wh')">+ 新增</button></div>
+            <div class="table-wrap"><table><thead><tr><th>名称</th><th>类型</th><th>操作</th></tr></thead><tbody id="tb-wh"></tbody></table></div>
         </div>
-
         <!-- 分类面板 -->
         <div id="sub-cat" style="display:none">
-            <div class="sec-title">
-                <span>分类管理</span>
-                <button class="btn pri" onclick="openModal('cat')">+ 新增</button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>分类名称</th><th>操作</th></tr></thead>
-                    <tbody id="tb-cat"></tbody>
-                </table>
-            </div>
+            <div class="sec-title"><span>分类管理</span><button class="btn pri" onclick="openModal('cat')">+ 新增</button></div>
+            <div class="table-wrap"><table><thead><tr><th>分类名称</th><th>操作</th></tr></thead><tbody id="tb-cat"></tbody></table></div>
+        </div>
+        <!-- 门店面板 -->
+        <div id="sub-store" style="display:none">
+            <div class="sec-title"><span>门店管理</span><button class="btn pri" onclick="openModal('store')">+ 新增</button></div>
+            <div class="table-wrap"><table><thead><tr><th>门店名称</th><th>地址</th><th>税率</th><th>操作</th></tr></thead><tbody id="tb-store"></tbody></table></div>
+        </div>
+        <!-- 用户面板 -->
+        <div id="sub-user" style="display:none">
+            <div class="sec-title"><span>用户管理</span><button class="btn pri" onclick="openModal('user')">+ 新增</button></div>
+            <div class="table-wrap"><table><thead><tr><th>姓名</th><th>角色</th><th>电话</th><th>状态</th></tr></thead><tbody id="tb-user"></tbody></table></div>
         </div>
     </div>
 
-    <!-- ================= 3. 业务单据页面 ================= -->
+    <!-- ================= 3. 业务单据（采购/入库/出库/盘点） ================= -->
     <div id="page-business" class="page">
         <div class="tabs">
             <div class="tab active" onclick="switchBiz('po')">采购单</div>
@@ -445,103 +154,64 @@
             <div class="tab" onclick="switchBiz('out')">出库单</div>
             <div class="tab" onclick="switchBiz('take')">盘点单</div>
         </div>
-
         <!-- 采购单列表 -->
         <div id="sub-po">
-            <div class="sec-title">
-                <span>采购单列表</span>
-                <button class="btn pri" onclick="openModal('po')">+ 新建</button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>单号</th><th>供应商</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody id="tb-po"></tbody>
-                </table>
-            </div>
+            <div class="sec-title"><span>采购单列表</span><button class="btn pri" onclick="openModal('po')">+ 新建</button></div>
+            <div class="table-wrap"><table><thead><tr><th>单号</th><th>供应商</th><th>状态</th><th>操作</th></tr></thead><tbody id="tb-po"></tbody></table></div>
         </div>
-
         <!-- 入库单列表 -->
         <div id="sub-in" style="display:none">
-            <div class="sec-title">
-                <span>入库单列表</span>
-                <button class="btn pri" onclick="openModal('in')">+ 新建</button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>单号</th><th>仓库</th><th>来源</th><th>时间</th></tr></thead>
-                    <tbody id="tb-in"></tbody>
-                </table>
-            </div>
+            <div class="sec-title"><span>入库单列表</span><button class="btn pri" onclick="openModal('in')">+ 新建</button></div>
+            <div class="table-wrap"><table><thead><tr><th>单号</th><th>仓库</th><th>来源</th><th>时间</th><th>操作</th></tr></thead><tbody id="tb-in"></tbody></table></div>
         </div>
-
         <!-- 出库单列表 -->
         <div id="sub-out" style="display:none">
-            <div class="sec-title">
-                <span>出库单列表</span>
-                <button class="btn pri" onclick="openModal('out')">+ 新建</button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>单号</th><th>仓库</th><th>类型</th><th>时间</th></tr></thead>
-                    <tbody id="tb-out"></tbody>
-                </table>
-            </div>
+            <div class="sec-title"><span>出库单列表</span><button class="btn pri" onclick="openModal('out')">+ 新建</button></div>
+            <div class="table-wrap"><table><thead><tr><th>单号</th><th>仓库</th><th>类型</th><th>时间</th><th>操作</th></tr></thead><tbody id="tb-out"></tbody></table></div>
         </div>
-
         <!-- 盘点单列表 -->
         <div id="sub-take" style="display:none">
-            <div class="sec-title">
-                <span>盘点单列表</span>
-                <button class="btn pri" onclick="openModal('take')">+ 新建</button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>仓库</th><th>日期</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody id="tb-take"></tbody>
-                </table>
-            </div>
+            <div class="sec-title"><span>盘点单列表</span><button class="btn pri" onclick="openModal('take')">+ 新建</button></div>
+            <div class="table-wrap"><table><thead><tr><th>仓库</th><th>日期</th><th>状态</th><th>操作</th></tr></thead><tbody id="tb-take"></tbody></table></div>
         </div>
     </div>
 
-    <!-- ================= 4. 库存中心页面 ================= -->
+    <!-- ================= 4. 销售管理（重要补全） ================= -->
+    <div id="page-sales" class="page">
+        <div class="tabs">
+            <div class="tab active" onclick="switchSales('pos')">POS导入</div>
+            <div class="tab" onclick="switchSales('records')">销售流水</div>
+            <div class="tab" onclick="switchSales('daily')">营收与利润</div>
+        </div>
+        <!-- POS导入 -->
+        <div id="sub-pos">
+            <div class="sec-title"><span>POS 导入批次</span><button class="btn pri" onclick="openModal('pos')">+ 导入</button></div>
+            <div class="table-wrap"><table><thead><tr><th>文件</th><th>销售日期</th><th>总行数</th><th>状态</th></tr></thead><tbody id="tb-pos"></tbody></table></div>
+        </div>
+        <!-- 销售流水 -->
+        <div id="sub-records" style="display:none">
+            <div class="sec-title"><span>销售流水记录</span></div>
+            <div class="table-wrap"><table><thead><tr><th>日期</th><th>商品编码</th><th>份数</th><th>金额</th></tr></thead><tbody id="tb-records"></tbody></table></div>
+        </div>
+        <!-- 营收与利润 -->
+        <div id="sub-daily" style="display:none">
+            <div class="sec-title">每日营收汇总</div>
+            <div class="table-wrap"><table><thead><tr><th>日期</th><th>总营收</th><th>单数</th></tr></thead><tbody id="tb-sale-rev"></tbody></table></div>
+            <div class="sec-title">每日利润汇总</div>
+            <div class="table-wrap"><table><thead><tr><th>日期</th><th>营收</th><th>成本</th><th>税前利润</th></tr></thead><tbody id="tb-sale-pro"></tbody></table></div>
+        </div>
+    </div>
+
+    <!-- ================= 5. 库存中心 ================= -->
     <div id="page-inventory" class="page">
-        <div class="sec-title">
-            <span>实时库存</span>
-            <button class="btn warn" onclick="loadInventoryWarning()">仅看预警</button>
-        </div>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>原材料</th><th>仓库</th><th>库存</th><th>成本</th></tr></thead>
-                <tbody id="tb-inv"></tbody>
-            </table>
-        </div>
+        <div class="sec-title"><span>实时库存</span><button class="btn warn" onclick="loadInventoryWarning()">仅看预警</button></div>
+        <div class="table-wrap"><table><thead><tr><th>原材料</th><th>仓库</th><th>库存</th><th>成本</th></tr></thead><tbody id="tb-inv"></tbody></table></div>
     </div>
 
-    <!-- ================= 5. 财务报表页面 ================= -->
+    <!-- ================= 6. 报表中心 ================= -->
     <div id="page-reports" class="page">
-        <div class="sec-title">每日营收</div>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>日期</th><th>总营收</th><th>单数</th></tr></thead>
-                <tbody id="tb-rev"></tbody>
-            </table>
-        </div>
-
-        <div class="sec-title">每日利润</div>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>日期</th><th>营收</th><th>成本</th><th>税前利润</th></tr></thead>
-                <tbody id="tb-pro"></tbody>
-            </table>
-        </div>
-
-        <div class="sec-title">固定资产</div>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>名称</th><th>原值</th><th>月折旧</th></tr></thead>
-                <tbody id="tb-asset"></tbody>
-            </table>
-        </div>
+        <div class="sec-title">固定资产管理</div>
+        <div class="table-wrap"><table><thead><tr><th>名称</th><th>原值</th><th>月折旧</th></tr></thead><tbody id="tb-asset"></tbody></table></div>
     </div>
 
 </div>
@@ -551,15 +221,16 @@
     <div class="tab-item active" onclick="switchPage('dashboard')"><span class="icon">📊</span>看板</div>
     <div class="tab-item" onclick="switchPage('master')"><span class="icon">📋</span>基础</div>
     <div class="tab-item" onclick="switchPage('business')"><span class="icon">📄</span>单据</div>
+    <div class="tab-item" onclick="switchPage('sales')"><span class="icon">💰</span>销售</div>
     <div class="tab-item" onclick="switchPage('inventory')"><span class="icon">📦</span>库存</div>
     <div class="tab-item" onclick="switchPage('reports')"><span class="icon">📈</span>报表</div>
 </div>
 
-<!-- ================= 全局弹窗容器（用于所有表单） ================= -->
+<!-- ================= 全局弹窗容器 ================= -->
 <div class="modal" id="modal">
     <div class="modal-box">
         <h3 id="modal-title">标题</h3>
-        <div id="modal-form"></div> <!-- 表单具体内容由 JS 动态生成 -->
+        <div id="modal-form"></div>
         <div class="modal-actions">
             <button class="btn-cancel" onclick="closeModal()">取消</button>
             <button class="btn-primary" onclick="submitModal()">保存</button>
@@ -569,882 +240,318 @@
 
 <script>
     /* ==========================================================
-       全局变量配置
+       全局变量与通用请求封装
        ========================================================== */
-    // 接口基础地址，因为前端和后端部署在同一个域名下，所以留空即可
     const API_BASE = "";
-    // 当前门店ID，这里默认写死为1，后续如果有多门店可以做成动态选择
     const STORE_ID = 1;
-
-    // 记录当前打开的弹窗类型，便于提交时判断调用哪个接口
     let currentModalType = "";
+    let currentModalId = null;
 
-    /* ==========================================================
-       通用网络请求函数（封装 fetch，处理错误与超时）
-       ========================================================== */
     async function apiFetch(url, options = {}) {
         try {
             const response = await fetch(API_BASE + url, {
                 headers: { 'Content-Type': 'application/json' },
                 ...options
             });
-
-            // 如果 HTTP 状态码不是 200-299，抛出错误
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || '请求失败');
-            }
-
-            // 解析并返回 JSON 数据
+            if (!response.ok) throw new Error(await response.text() || '请求失败');
             return await response.json();
-
         } catch (error) {
-            // 判断是否是网络错误（Render 免费版休眠唤醒时最容易出现）
             if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
                 alert('服务器正在唤醒中，请等待 30-60 秒后重试。');
             } else {
                 alert('请求发生错误：' + error.message);
             }
-            // 继续抛出错误，让调用方知道出错了
             throw error;
         }
     }
 
     /* ==========================================================
-       页面切换逻辑（底部导航栏）
+       页面路由切换逻辑
        ========================================================== */
-    // 需要切换的页面列表
-    const pageList = ['dashboard', 'master', 'business', 'inventory', 'reports'];
+    const pageList = ['dashboard', 'master', 'business', 'sales', 'inventory', 'reports'];
 
     function switchPage(pageName) {
-        // 1. 隐藏所有页面
-        pageList.forEach(page => {
-            document.getElementById('page-' + page).classList.remove('active');
-        });
-
-        // 2. 显示目标页面
+        pageList.forEach(page => document.getElementById('page-' + page).classList.remove('active'));
         document.getElementById('page-' + pageName).classList.add('active');
 
-        // 3. 更新底部导航栏的高亮状态
         const tabItems = document.querySelectorAll('.tab-bar .tab-item');
         tabItems.forEach((item, index) => {
-            // 根据索引判断，因为底部导航栏的顺序和 pageList 一致
-            if (pageList[index] === pageName) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
+            item.classList.toggle('active', pageList[index] === pageName);
         });
 
-        // 4. 进入页面时，自动加载该页面的数据
+        // 自动加载对应页面的数据
         if (pageName === 'dashboard') loadDashboard();
-        if (pageName === 'master') switchMaster('mat'); // 默认显示原材料
-        if (pageName === 'business') switchBiz('po');    // 默认显示采购单
+        if (pageName === 'master') switchMaster('mat');
+        if (pageName === 'business') switchBiz('po');
+        if (pageName === 'sales') switchSales('pos');
         if (pageName === 'inventory') loadInventory();
         if (pageName === 'reports') loadReports();
     }
 
-    /* ==========================================================
-       子标签切换逻辑（基础数据）
-       ========================================================== */
     function switchMaster(tabName) {
-        // 更新基础数据内部 Tab 的高亮
-        const masterTabs = document.querySelectorAll('#master-tabs .tab');
-        masterTabs.forEach(tab => tab.classList.remove('active'));
-        // 获取当前点击的Tab，如果是程序直接调用（如初始化），则默认第一个
-        if (event && event.currentTarget) {
-            event.currentTarget.classList.add('active');
-        } else {
-            masterTabs[0].classList.add('active');
-        }
+        const tabs = document.querySelectorAll('#master-tabs .tab');
+        tabs.forEach(t => t.classList.remove('active'));
+        if (event && event.currentTarget) event.currentTarget.classList.add('active');
+        else tabs[0].classList.add('active');
 
-        // 隐藏所有子面板
-        const subPanels = ['mat', 'dish', 'sup', 'wh', 'cat'];
-        subPanels.forEach(panel => {
-            document.getElementById('sub-' + panel).style.display = 'none';
-        });
-
-        // 显示目标面板
+        ['mat', 'dish', 'sup', 'wh', 'cat', 'store', 'user'].forEach(p => document.getElementById('sub-' + p).style.display = 'none');
         document.getElementById('sub-' + tabName).style.display = 'block';
 
-        // 加载对应数据
         if (tabName === 'mat') loadMaterials();
         if (tabName === 'dish') loadDishes();
         if (tabName === 'sup') loadSuppliers();
         if (tabName === 'wh') loadWarehouses();
         if (tabName === 'cat') loadCategories();
+        if (tabName === 'store') loadStores();
+        if (tabName === 'user') loadUsers();
     }
 
-    /* ==========================================================
-       子标签切换逻辑（业务单据）
-       ========================================================== */
     function switchBiz(tabName) {
-        // 更新业务单据内部 Tab 的高亮
-        const bizTabs = document.querySelectorAll('#page-business .tab');
-        bizTabs.forEach(tab => tab.classList.remove('active'));
-        if (event && event.currentTarget) {
-            event.currentTarget.classList.add('active');
-        } else {
-            bizTabs[0].classList.add('active');
-        }
+        const tabs = document.querySelectorAll('#page-business .tab');
+        tabs.forEach(t => t.classList.remove('active'));
+        if (event && event.currentTarget) event.currentTarget.classList.add('active');
+        else tabs[0].classList.add('active');
 
-        // 隐藏所有子面板
-        const subPanels = ['po', 'in', 'out', 'take'];
-        subPanels.forEach(panel => {
-            document.getElementById('sub-' + panel).style.display = 'none';
-        });
-
-        // 显示目标面板
+        ['po', 'in', 'out', 'take'].forEach(p => document.getElementById('sub-' + p).style.display = 'none');
         document.getElementById('sub-' + tabName).style.display = 'block';
 
-        // 加载对应数据
         if (tabName === 'po') loadPurchaseOrders();
         if (tabName === 'in') loadStockIn();
         if (tabName === 'out') loadStockOut();
         if (tabName === 'take') loadStockTake();
     }
 
+    function switchSales(tabName) {
+        const tabs = document.querySelectorAll('#page-sales .tab');
+        tabs.forEach(t => t.classList.remove('active'));
+        if (event && event.currentTarget) event.currentTarget.classList.add('active');
+        else tabs[0].classList.add('active');
+
+        ['pos', 'records', 'daily'].forEach(p => document.getElementById('sub-' + p).style.display = 'none');
+        document.getElementById('sub-' + tabName).style.display = 'block';
+
+        if (tabName === 'pos') loadPosBatches();
+        if (tabName === 'records') loadSalesRecords();
+        if (tabName === 'daily') loadSalesDaily();
+    }
+
     /* ==========================================================
-       弹窗管理逻辑（新增 / 编辑）
+       弹窗表单生成与提交（包含所有主子表单联动）
        ========================================================== */
-    // 打开弹窗，动态生成表单
     function openModal(type, data = {}) {
         currentModalType = type;
+        currentModalId = data.id || null;
         const modal = document.getElementById('modal');
         const title = document.getElementById('modal-title');
         const form = document.getElementById('modal-form');
-
         modal.classList.add('show');
 
-        // 设置弹窗标题
-        const titles = {
-            mat: '原材料', dish: '菜品', sup: '供应商',
-            wh: '仓库', cat: '分类', po: '采购单',
-            in: '入库单', out: '出库单', take: '盘点单'
-        };
+        const titles = { mat: '原材料', dish: '菜品', sup: '供应商', wh: '仓库', cat: '分类', store: '门店', user: '用户', po: '采购单', in: '入库单', out: '出库单', take: '盘点单', pos: 'POS导入批次', asset: '固定资产' };
         title.textContent = (data.id ? '编辑' : '新增') + (titles[type] || '');
 
-        // 根据类型渲染表单 HTML
-        let formHTML = '';
-
-        if (type === 'mat') {
-            formHTML = `
-                <div class="form-row"><label>名称</label><input id="f-name" value="${data.name || ''}" placeholder="如：大米"></div>
-                <div class="form-row"><label>单位</label><input id="f-unit" value="${data.unit || 'kg'}"></div>
-                <div class="form-row"><label>安全库存</label><input id="f-safety" type="number" step="0.01" value="${data.safety_stock || 10}"></div>
-                <div class="form-row"><label>采购单价（¥）</label><input id="f-price" type="number" step="0.01" value="${data.latest_purchase_price || 0}"></div>
-                <div class="form-row"><label>保质期（天）</label><input id="f-shelf" type="number" value="${data.shelf_life_days || 0}"></div>
-            `;
-        }
-        else if (type === 'dish') {
-            formHTML = `
-                <div class="form-row"><label>菜品名称</label><input id="f-name" value="${data.name || ''}" placeholder="如：蛋炒饭"></div>
-                <div class="form-row"><label>销售单价（¥）</label><input id="f-price" type="number" step="0.01" value="${data.selling_price || 0}"></div>
-                <div class="form-row"><label>POS编码</label><input id="f-sku" value="${data.pos_sku || ''}" placeholder="如：DCF001"></div>
-            `;
-        }
-        else if (type === 'sup') {
-            formHTML = `
-                <div class="form-row"><label>名称</label><input id="f-name" value="${data.name || ''}"></div>
-                <div class="form-row"><label>联系人</label><input id="f-contact" value="${data.contact || ''}"></div>
-                <div class="form-row"><label>电话</label><input id="f-phone" value="${data.phone || ''}"></div>
-                <div class="form-row"><label>地址</label><input id="f-address" value="${data.address || ''}"></div>
-            `;
-        }
-        else if (type === 'wh') {
-            formHTML = `
-                <div class="form-row"><label>仓库名称</label><input id="f-name" value="${data.name || ''}"></div>
-                <div class="form-row"><label>类型</label><input id="f-type" value="${data.type || ''}" placeholder="如：食材库"></div>
-            `;
-        }
-        else if (type === 'cat') {
-            formHTML = `
-                <div class="form-row"><label>分类名称</label><input id="f-name" value="${data.name || ''}" placeholder="如：主食"></div>
-            `;
-        }
-        else if (type === 'po') {
-            formHTML = `
-                <div class="form-row"><label>采购单号</label><input id="f-no" value="PO${Date.now()}" readonly></div>
-                <div class="form-row"><label>供应商ID</label><input id="f-sid" type="number" value="1"></div>
-            `;
-        }
-        else if (type === 'in') {
-            formHTML = `
-                <div class="form-row"><label>仓库ID</label><input id="f-wid" type="number" value="1"></div>
-                <div class="form-row"><label>入库来源</label><input id="f-src" value="采购"></div>
-            `;
-        }
-        else if (type === 'out') {
-            formHTML = `
-                <div class="form-row"><label>仓库ID</label><input id="f-wid" type="number" value="1"></div>
-                <div class="form-row"><label>出库类型</label><input id="f-type" value="销售自动扣减"></div>
-            `;
-        }
-        else if (type === 'take') {
-            formHTML = `
-                <div class="form-row"><label>仓库ID</label><input id="f-wid" type="number" value="1"></div>
-                <div class="form-row"><label>盘点日期</label><input id="f-date" type="date" value="${new Date().toISOString().slice(0, 10)}"></div>
-            `;
-        }
-
-        form.innerHTML = formHTML;
+        let h = '';
+        // 基础数据表单
+        if (type === 'mat') h = `<div class="form-row"><label>名称</label><input id="f-name" value="${data.name||''}"></div><div class="form-row"><label>单位</label><input id="f-unit" value="${data.unit||'kg'}"></div><div class="form-row"><label>安全库存</label><input id="f-safety" type="number" value="${data.safety_stock||10}"></div><div class="form-row"><label>采购单价</label><input id="f-price" type="number" value="${data.latest_purchase_price||0}"></div>`;
+        if (type === 'dish') h = `<div class="form-row"><label>名称</label><input id="f-name" value="${data.name||''}"></div><div class="form-row"><label>售价</label><input id="f-price" type="number" value="${data.selling_price||0}"></div><div class="form-row"><label>POS编码</label><input id="f-sku" value="${data.pos_sku||''}"></div>`;
+        if (type === 'sup') h = `<div class="form-row"><label>名称</label><input id="f-name" value="${data.name||''}"></div><div class="form-row"><label>联系人</label><input id="f-contact" value="${data.contact||''}"></div><div class="form-row"><label>电话</label><input id="f-phone" value="${data.phone||''}"></div>`;
+        if (type === 'wh') h = `<div class="form-row"><label>仓库名称</label><input id="f-name" value="${data.name||''}"></div><div class="form-row"><label>类型</label><input id="f-type" value="${data.type||''}"></div>`;
+        if (type === 'cat') h = `<div class="form-row"><label>分类名称</label><input id="f-name" value="${data.name||''}"></div>`;
+        if (type === 'store') h = `<div class="form-row"><label>门店名称</label><input id="f-name" value="${data.name||''}"></div><div class="form-row"><label>地址</label><input id="f-addr" value="${data.address||''}"></div><div class="form-row"><label>税率</label><input id="f-tax" type="number" step="0.01" value="${data.tax_rate||0.01}"></div>`;
+        if (type === 'user') h = `<div class="form-row"><label>姓名</label><input id="f-name" value="${data.name||''}"></div><div class="form-row"><label>角色</label><select id="f-role"><option value="admin">管理员</option><option value="manager">店长</option><option value="staff">员工</option></select></div><div class="form-row"><label>电话</label><input id="f-phone" value="${data.phone||''}"></div>`;
+        
+        // 单据表单（主子表）
+        if (type === 'po') h = `<div class="form-row"><label>单号</label><input id="f-no" value="PO${Date.now()}" readonly></div><div class="form-row"><label>供应商ID</label><input id="f-sid" type="number" value="1"></div><div class="sub-form"><h4>添加采购明细</h4><div class="form-row"><label>原材料ID</label><input id="f-mid" type="number" value="1"></div><div class="form-row"><label>数量</label><input id="f-qty" type="number" value="10"></div><div class="form-row"><label>单价</label><input id="f-price" type="number" value="2.5"></div></div>`;
+        if (type === 'in') h = `<div class="form-row"><label>仓库ID</label><input id="f-wid" type="number" value="1"></div><div class="form-row"><label>来源</label><input id="f-src" value="采购"></div><div class="sub-form"><h4>添加入库明细</h4><div class="form-row"><label>原材料ID</label><input id="f-mid" type="number" value="1"></div><div class="form-row"><label>数量</label><input id="f-qty" type="number" value="50"></div><div class="form-row"><label>单位成本</label><input id="f-cost" type="number" value="2.5"></div></div>`;
+        if (type === 'out') h = `<div class="form-row"><label>仓库ID</label><input id="f-wid" type="number" value="1"></div><div class="form-row"><label>类型</label><input id="f-type" value="销售扣减"></div><div class="sub-form"><h4>添加出库明细</h4><div class="form-row"><label>原材料ID</label><input id="f-mid" type="number" value="1"></div><div class="form-row"><label>数量</label><input id="f-qty" type="number" value="5"></div></div>`;
+        if (type === 'take') h = `<div class="form-row"><label>仓库ID</label><input id="f-wid" type="number" value="1"></div><div class="form-row"><label>日期</label><input id="f-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="sub-form"><h4>盘点明细</h4><div class="form-row"><label>原材料ID</label><input id="f-mid" type="number" value="1"></div><div class="form-row"><label>账面数量</label><input id="f-book" type="number" value="10"></div><div class="form-row"><label>实际数量</label><input id="f-act" type="number" value="8"></div></div>`;
+        if (type === 'pos') h = `<div class="form-row"><label>文件名</label><input id="f-file" value="POS_${Date.now()}.csv"></div><div class="form-row"><label>销售日期</label><input id="f-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>`;
+        if (type === 'asset') h = `<div class="form-row"><label>资产名称</label><input id="f-name" value=""></div><div class="form-row"><label>原值</label><input id="f-amount" type="number" value="8000"></div><div class="form-row"><label>月折旧</label><input id="f-dep" type="number" value="126.67"></div>`;
+        
+        form.innerHTML = h;
     }
 
-    // 关闭弹窗
-    function closeModal() {
-        document.getElementById('modal').classList.remove('show');
-    }
+    function closeModal() { document.getElementById('modal').classList.remove('show'); }
 
-    // 提交弹窗表单数据
+    // 提交所有弹窗表单
     async function submitModal() {
         const type = currentModalType;
-        let url = '';
+        let url = '', method = currentModalId ? 'PUT' : 'POST';
         let body = { store_id: STORE_ID };
+        const val = id => document.getElementById(id) ? document.getElementById(id).value.trim() : '';
 
-        // 根据弹窗类型，收集表单数据
         try {
-            if (type === 'mat') {
-                body.name = document.getElementById('f-name').value.trim();
-                body.unit = document.getElementById('f-unit').value.trim();
-                body.safety_stock = Number(document.getElementById('f-safety').value);
-                body.latest_purchase_price = Number(document.getElementById('f-price').value);
-                body.shelf_life_days = Number(document.getElementById('f-shelf').value);
-                if (!body.name) throw new Error('请填写名称');
-                url = '/api/materials';
+            // 1. 基础数据提交
+            if (type === 'mat') { body.name = val('f-name'); body.unit = val('f-unit'); body.safety_stock = +val('f-safety'); body.latest_purchase_price = +val('f-price'); url = currentModalId ? `/api/materials/${currentModalId}` : '/api/materials'; }
+            if (type === 'dish') { body.name = val('f-name'); body.selling_price = +val('f-price'); body.pos_sku = val('f-sku'); url = currentModalId ? `/api/dishes/${currentModalId}` : '/api/dishes'; }
+            if (type === 'sup') { body.name = val('f-name'); body.contact = val('f-contact'); body.phone = val('f-phone'); url = currentModalId ? `/api/suppliers/${currentModalId}` : '/api/suppliers'; }
+            if (type === 'wh') { body.name = val('f-name'); body.type = val('f-type'); url = currentModalId ? `/api/warehouses/${currentModalId}` : '/api/warehouses'; }
+            if (type === 'cat') { body.name = val('f-name'); url = currentModalId ? `/api/categories/${currentModalId}` : '/api/categories'; }
+            if (type === 'store') { body.name = val('f-name'); body.address = val('f-addr'); body.tax_rate = +val('f-tax'); url = currentModalId ? `/api/stores/${currentModalId}` : '/api/stores'; }
+            if (type === 'user') { body.name = val('f-name'); body.role = val('f-role'); body.phone = val('f-phone'); url = currentModalId ? `/api/users/${currentModalId}` : '/api/users'; }
+            if (type === 'asset') { body.name = val('f-name'); body.purchase_amount = +val('f-amount'); body.monthly_depreciation = +val('f-dep'); url = '/api/assets'; }
+
+            // 2. 主表提交（先生成主记录，再提交子表明细）
+            if (type === 'po') { body.order_no = val('f-no'); body.supplier_id = +val('f-sid'); url = '/api/purchase_orders'; }
+            if (type === 'in') { body.warehouse_id = +val('f-wid'); body.source_type = val('f-src'); url = '/api/stock_in'; }
+            if (type === 'out') { body.warehouse_id = +val('f-wid'); body.out_type = val('f-type'); url = '/api/stock_out'; }
+            if (type === 'take') { body.warehouse_id = +val('f-wid'); body.take_date = val('f-date'); body.status = '进行中'; url = '/api/stock_take'; }
+            if (type === 'pos') { body.file_name = val('f-file'); body.import_date = val('f-date'); body.status = '已完成'; body.total_rows = 100; body.matched_rows = 100; body.unmatched_rows = 0; url = '/api/pos_batches'; }
+
+            // 提交主表
+            const res = await apiFetch(url, { method, body: JSON.stringify(body) });
+
+            // 3. 提交子表明细
+            if (type === 'po') {
+                await apiFetch('/api/purchase_order_items', { method: 'POST', body: JSON.stringify({ purchase_order_id: res.id || currentModalId, material_id: +val('f-mid'), quantity: +val('f-qty'), unit_price: +val('f-price'), amount: (+val('f-qty') * +val('f-price')), tax_amount: 0 }) });
             }
-            else if (type === 'dish') {
-                body.name = document.getElementById('f-name').value.trim();
-                body.selling_price = Number(document.getElementById('f-price').value);
-                body.pos_sku = document.getElementById('f-sku').value.trim();
-                if (!body.name) throw new Error('请填写菜品名称');
-                url = '/api/dishes';
+            if (type === 'in') {
+                await apiFetch('/api/stock_in_items', { method: 'POST', body: JSON.stringify({ stock_in_id: res.id || currentModalId, material_id: +val('f-mid'), quantity: +val('f-qty'), unit_cost: +val('f-cost') }) });
             }
-            else if (type === 'sup') {
-                body.name = document.getElementById('f-name').value.trim();
-                body.contact = document.getElementById('f-contact').value.trim();
-                body.phone = document.getElementById('f-phone').value.trim();
-                body.address = document.getElementById('f-address').value.trim();
-                if (!body.name) throw new Error('请填写供应商名称');
-                url = '/api/suppliers';
+            if (type === 'out') {
+                await apiFetch('/api/stock_out_items', { method: 'POST', body: JSON.stringify({ stock_out_id: res.id || currentModalId, material_id: +val('f-mid'), quantity: +val('f-qty'), cost_amount: (+val('f-qty') * 2.5) }) });
             }
-            else if (type === 'wh') {
-                body.name = document.getElementById('f-name').value.trim();
-                body.type = document.getElementById('f-type').value.trim();
-                if (!body.name) throw new Error('请填写仓库名称');
-                url = '/api/warehouses';
-            }
-            else if (type === 'cat') {
-                body.name = document.getElementById('f-name').value.trim();
-                if (!body.name) throw new Error('请填写分类名称');
-                url = '/api/categories';
-            }
-            else if (type === 'po') {
-                body.order_no = document.getElementById('f-no').value;
-                body.supplier_id = Number(document.getElementById('f-sid').value);
-                body.status = 'pending';
-                url = '/api/purchase_orders';
-            }
-            else if (type === 'in') {
-                body.warehouse_id = Number(document.getElementById('f-wid').value);
-                body.source_type = document.getElementById('f-src').value.trim();
-                url = '/api/stock_in';
-            }
-            else if (type === 'out') {
-                body.warehouse_id = Number(document.getElementById('f-wid').value);
-                body.out_type = document.getElementById('f-type').value.trim();
-                url = '/api/stock_out';
-            }
-            else if (type === 'take') {
-                body.warehouse_id = Number(document.getElementById('f-wid').value);
-                body.take_date = document.getElementById('f-date').value;
-                body.status = '进行中';
-                url = '/api/stock_take';
+            if (type === 'take') {
+                await apiFetch('/api/stock_take_items', { method: 'POST', body: JSON.stringify({ stock_take_id: res.id || currentModalId, material_id: +val('f-mid'), book_quantity: +val('f-book'), actual_quantity: +val('f-act') }) });
             }
 
-            // 发送 POST 请求
-            await apiFetch(url, {
-                method: 'POST',
-                body: JSON.stringify(body)
-            });
-
-            // 保存成功后，关闭弹窗并刷新当前列表
             closeModal();
             refreshCurrentList();
-
-        } catch (error) {
-            alert('保存失败：' + error.message);
-        }
+        } catch (error) { alert('保存失败：' + error.message); }
     }
 
-    // 刷新当前所在的列表页面
+    // 刷新当前列表
     function refreshCurrentList() {
         const page = document.querySelector('.page.active').id.replace('page-', '');
-
         if (page === 'dashboard') loadDashboard();
-        if (page === 'master') {
-            // 找到当前激活的子标签
-            const activeTab = document.querySelector('#master-tabs .tab.active');
-            const tabText = activeTab ? activeTab.textContent : '原材料';
-            if (tabText.includes('原材料')) loadMaterials();
-            if (tabText.includes('菜品')) loadDishes();
-            if (tabText.includes('供应商')) loadSuppliers();
-            if (tabText.includes('仓库')) loadWarehouses();
-            if (tabText.includes('分类')) loadCategories();
-        }
-        if (page === 'business') {
-            const activeTab = document.querySelector('#page-business .tab.active');
-            const tabText = activeTab ? activeTab.textContent : '采购单';
-            if (tabText.includes('采购')) loadPurchaseOrders();
-            if (tabText.includes('入库')) loadStockIn();
-            if (tabText.includes('出库')) loadStockOut();
-            if (tabText.includes('盘点')) loadStockTake();
-        }
+        if (page === 'master') { const t = document.querySelector('#master-tabs .tab.active').textContent; switchMaster(t.includes('原')?'mat':t.includes('菜')?'dish':t.includes('供')?'sup':t.includes('仓')?'wh':t.includes('分')?'cat':t.includes('门')?'store':'user'); }
+        if (page === 'business') { const t = document.querySelector('#page-business .tab.active').textContent; switchBiz(t.includes('采')?'po':t.includes('入')?'in':t.includes('出')?'out':'take'); }
+        if (page === 'sales') { const t = document.querySelector('#page-sales .tab.active').textContent; switchSales(t.includes('POS')?'pos':t.includes('流')?'records':'daily'); }
         if (page === 'inventory') loadInventory();
         if (page === 'reports') loadReports();
     }
-
-    /* ==========================================================
-       数据加载：数据看板
-       ========================================================== */
-    async function loadDashboard() {
-        try {
-            const data = await apiFetch(`/api/dashboard?store_id=${STORE_ID}`);
-            document.getElementById('s-rev').textContent = '¥' + Number(data.today_revenue).toFixed(2);
-            document.getElementById('s-pro').textContent = '¥' + Number(data.today_profit).toFixed(2);
-            document.getElementById('s-warn').textContent = data.warn_count + ' 项';
-            document.getElementById('s-mat').textContent = data.total_materials;
-        } catch (e) {
-            // 看板加载失败不强制弹窗，由 apiFetch 统一处理
-            console.error('看板加载失败', e);
-        }
-    }
-
-    /* ==========================================================
-       数据加载：基础数据（原材料、菜品、供应商、仓库、分类）
-       ========================================================== */
-    // 1. 原材料列表
-    async function loadMaterials() {
-        const tbody = document.getElementById('tb-mat');
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">加载中...</td></tr>';
-        try {
-            const list = await apiFetch(`/api/materials?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty">暂无原材料数据</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>${item.name}</td>
-                    <td>${item.unit || '-'}</td>
-                    <td>${item.safety_stock || 0}</td>
-                    <td>¥${Number(item.latest_purchase_price || 0).toFixed(2)}</td>
-                    <td>
-                        <button class="btn" onclick='openModal("mat", ${JSON.stringify(item)})'>编辑</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="5" class="empty">加载失败</td></tr>';
-        }
-    }
-
-    // 2. 菜品列表
-    async function loadDishes() {
-        const tbody = document.getElementById('tb-dish');
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">加载中...</td></tr>';
-        try {
-            const list = await apiFetch(`/api/dishes?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无菜品数据</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>${item.name}</td>
-                    <td>¥${Number(item.selling_price).toFixed(2)}</td>
-                    <td>${item.pos_sku || '-'}</td>
-                    <td>
-                        <button class="btn info" onclick="openBom(${item.id}, '${item.name}')">配方</button>
-                        <button class="btn" onclick='openModal("dish", ${JSON.stringify(item)})'>编辑</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>';
-        }
-    }
-
-    // 3. 供应商列表
-    async function loadSuppliers() {
-        const tbody = document.getElementById('tb-sup');
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">加载中...</td></tr>';
-        try {
-            const list = await apiFetch(`/api/suppliers?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无供应商数据</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>${item.name}</td>
-                    <td>${item.contact || '-'}</td>
-                    <td>${item.phone || '-'}</td>
-                    <td>
-                        <button class="btn" onclick='openModal("sup", ${JSON.stringify(item)})'>编辑</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>';
-        }
-    }
-
-    // 4. 仓库列表
-    async function loadWarehouses() {
-        const tbody = document.getElementById('tb-wh');
-        tbody.innerHTML = '<tr><td colspan="3" class="empty">加载中...</td></tr>';
-        try {
-            const list = await apiFetch(`/api/warehouses?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="empty">暂无仓库数据</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>${item.name}</td>
-                    <td>${item.type || '-'}</td>
-                    <td>
-                        <button class="btn" onclick='openModal("wh", ${JSON.stringify(item)})'>编辑</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="3" class="empty">加载失败</td></tr>';
-        }
-    }
-
-    // 5. 分类列表
-    async function loadCategories() {
-        const tbody = document.getElementById('tb-cat');
-        tbody.innerHTML = '<tr><td colspan="2" class="empty">加载中...</td></tr>';
-        try {
-            const list = await apiFetch(`/api/categories?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" class="empty">暂无分类数据</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>${item.name}</td>
-                    <td>
-                        <button class="btn" onclick='openModal("cat", ${JSON.stringify(item)})'>编辑</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="2" class="empty">加载失败</td></tr>';
-        }
-    }
 </script>
-
 
 <script>
     /* ==========================================================
-       数据加载：业务单据（采购单、入库单、出库单、盘点单）
+       基础数据加载
        ========================================================== */
-
-    // 1. 采购单列表
-    async function loadPurchaseOrders() {
-        const tbody = document.getElementById('tb-po');
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">加载中...</td></tr>';
+    async function loadDashboard() {
         try {
-            const list = await apiFetch(`/api/purchase_orders?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无采购单</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>${item.order_no}</td>
-                    <td>${item.supplier_name || item.supplier_id}</td>
-                    <td>${item.status}</td>
-                    <td>
-                        <button class="btn info" onclick="openPurchaseItems(${item.id})">明细</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>';
-        }
+            const d = await apiFetch(`/api/dashboard?store_id=${STORE_ID}`);
+            document.getElementById('s-rev').textContent = '¥' + Number(d.today_revenue).toFixed(2);
+            document.getElementById('s-pro').textContent = '¥' + Number(d.today_profit).toFixed(2);
+            document.getElementById('s-warn').textContent = d.warn_count + ' 项';
+            document.getElementById('s-mat').textContent = d.total_materials;
+        } catch (e) {}
     }
 
-    // 2. 入库单列表
-    async function loadStockIn() {
-        const tbody = document.getElementById('tb-in');
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">加载中...</td></tr>';
+    // 原材料
+    async function loadMaterials() {
+        const el = document.getElementById('tb-mat'); el.innerHTML = '<tr><td colspan="5" class="empty">加载中...</td></tr>';
         try {
-            const list = await apiFetch(`/api/stock_in?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无入库单</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>#${item.id}</td>
-                    <td>${item.warehouse_name || item.warehouse_id}</td>
-                    <td>${item.source_type}</td>
-                    <td>${item.created_at ? item.created_at.slice(0, 10) : '-'}</td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>';
-        }
+            const list = await apiFetch(`/api/materials?store_id=${STORE_ID}`);
+            el.innerHTML = list.length ? list.map(i => `<tr><td>${i.name}</td><td>${i.unit}</td><td>${i.safety_stock}</td><td>¥${i.latest_purchase_price}</td><td><button class="btn" onclick='openModal("mat",${JSON.stringify(i)})'>编辑</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty">暂无数据</td></tr>';
+        } catch (e) { el.innerHTML = '<tr><td colspan="5" class="empty">加载失败</td></tr>'; }
     }
 
-    // 3. 出库单列表
-    async function loadStockOut() {
-        const tbody = document.getElementById('tb-out');
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">加载中...</td></tr>';
+    // 菜品与 BOM
+    async function loadDishes() {
+        const el = document.getElementById('tb-dish'); el.innerHTML = '<tr><td colspan="4" class="empty">加载中...</td></tr>';
         try {
-            const list = await apiFetch(`/api/stock_out?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无出库单</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>#${item.id}</td>
-                    <td>${item.warehouse_name || item.warehouse_id}</td>
-                    <td>${item.out_type}</td>
-                    <td>${item.created_at ? item.created_at.slice(0, 10) : '-'}</td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>';
-        }
+            const list = await apiFetch(`/api/dishes?store_id=${STORE_ID}`);
+            el.innerHTML = list.length ? list.map(i => `<tr><td>${i.name}</td><td>¥${i.selling_price}</td><td>${i.pos_sku||'-'}</td><td><button class="btn info" onclick="openBom(${i.id},'${i.name}')">配方</button> <button class="btn" onclick='openModal("dish",${JSON.stringify(i)})'>编辑</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty">暂无菜品</td></tr>';
+        } catch (e) { el.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>'; }
     }
 
-    // 4. 盘点单列表
-    async function loadStockTake() {
-        const tbody = document.getElementById('tb-take');
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">加载中...</td></tr>';
+    // 供应商、仓库、分类、门店、用户（表格结构复用）
+    async function loadSuppliers() { const el=document.getElementById('tb-sup'); el.innerHTML='<tr><td colspan="4" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/suppliers?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.name}</td><td>${i.contact||'-'}</td><td>${i.phone||'-'}</td><td><button class="btn" onclick='openModal("sup",${JSON.stringify(i)})'>编辑</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">暂无数据</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="4" class="empty">加载失败</td></tr>';} }
+    async function loadWarehouses() { const el=document.getElementById('tb-wh'); el.innerHTML='<tr><td colspan="3" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/warehouses?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.name}</td><td>${i.type||'-'}</td><td><button class="btn" onclick='openModal("wh",${JSON.stringify(i)})'>编辑</button></td></tr>`).join(''):'<tr><td colspan="3" class="empty">暂无数据</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="3" class="empty">加载失败</td></tr>';} }
+    async function loadCategories() { const el=document.getElementById('tb-cat'); el.innerHTML='<tr><td colspan="2" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/categories?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.name}</td><td><button class="btn" onclick='openModal("cat",${JSON.stringify(i)})'>编辑</button></td></tr>`).join(''):'<tr><td colspan="2" class="empty">暂无数据</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="2" class="empty">加载失败</td></tr>';} }
+    async function loadStores() { const el=document.getElementById('tb-store'); el.innerHTML='<tr><td colspan="4" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/stores`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.name}</td><td>${i.address||'-'}</td><td>${i.tax_rate}</td><td><button class="btn" onclick='openModal("store",${JSON.stringify(i)})'>编辑</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">暂无数据</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="4" class="empty">加载失败</td></tr>';} }
+    async function loadUsers() { const el=document.getElementById('tb-user'); el.innerHTML='<tr><td colspan="4" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/users?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.name}</td><td>${i.role}</td><td>${i.phone||'-'}</td><td>${i.status}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">暂无数据</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="4" class="empty">加载失败</td></tr>';} }
+
+    /* ==========================================================
+       业务单据加载（采购/入库/出库/盘点）
+       ========================================================== */
+    async function loadPurchaseOrders() { const el=document.getElementById('tb-po'); el.innerHTML='<tr><td colspan="4" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/purchase_orders?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.order_no}</td><td>${i.supplier_name||i.supplier_id}</td><td>${i.status}</td><td><button class="btn info" onclick="viewSubItems('po',${i.id})">明细</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">暂无单据</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="4" class="empty">加载失败</td></tr>';} }
+    async function loadStockIn() { const el=document.getElementById('tb-in'); el.innerHTML='<tr><td colspan="5" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/stock_in?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>#${i.id}</td><td>${i.warehouse_name||i.warehouse_id}</td><td>${i.source_type}</td><td>${i.created_at?i.created_at.slice(0,10):'-'}</td><td><button class="btn info" onclick="viewSubItems('in',${i.id})">明细</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">暂无单据</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="5" class="empty">加载失败</td></tr>';} }
+    async function loadStockOut() { const el=document.getElementById('tb-out'); el.innerHTML='<tr><td colspan="5" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/stock_out?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>#${i.id}</td><td>${i.warehouse_name||i.warehouse_id}</td><td>${i.out_type}</td><td>${i.created_at?i.created_at.slice(0,10):'-'}</td><td><button class="btn info" onclick="viewSubItems('out',${i.id})">明细</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">暂无单据</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="5" class="empty">加载失败</td></tr>';} }
+    async function loadStockTake() { const el=document.getElementById('tb-take'); el.innerHTML='<tr><td colspan="4" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/stock_take?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.warehouse_name||i.warehouse_id}</td><td>${i.take_date}</td><td>${i.status}</td><td><button class="btn info" onclick="viewSubItems('take',${i.id})">明细</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">暂无单据</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="4" class="empty">加载失败</td></tr>';} }
+
+    // 查看单据明细（主子表联动展示）
+    async function viewSubItems(type, id) {
+        let url = '';
+        if (type === 'po') url = `/api/purchase_orders/${id}/items`;
+        if (type === 'in') url = `/api/stock_in_items?stock_in_id=${id}`;
+        if (type === 'out') url = `/api/stock_out_items?stock_out_id=${id}`;
+        if (type === 'take') url = `/api/stock_take_items?stock_take_id=${id}`;
+        
+        const modal = document.getElementById('modal');
+        const title = document.getElementById('modal-title');
+        const form = document.getElementById('modal-form');
+        modal.classList.add('show');
+        title.textContent = '单据明细';
+        form.innerHTML = '<div class="empty">加载中...</div>';
         try {
-            const list = await apiFetch(`/api/stock_take?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无盘点单</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>${item.warehouse_name || item.warehouse_id}</td>
-                    <td>${item.take_date}</td>
-                    <td>${item.status}</td>
-                    <td>
-                        <button class="btn info" onclick="openTakeItems(${item.id})">明细</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>';
-        }
+            const list = await apiFetch(url);
+            form.innerHTML = list.length ? `<table style="font-size:12px;"><thead><tr><th>项目</th><th>数量</th><th>金额/成本</th></tr></thead><tbody>${list.map(i => `<tr><td>${i.material_name||i.dish_name||i.material_id||i.dish_id}</td><td>${i.quantity}</td><td>¥${i.amount||i.cost_amount||i.unit_cost||0}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">暂无明细</div>';
+        } catch (e) { form.innerHTML = '<div class="empty">加载失败</div>'; }
     }
 
     /* ==========================================================
-       数据加载：库存中心
+       销售管理与报表
        ========================================================== */
-
-    // 实时库存列表
-    async function loadInventory() {
-        const tbody = document.getElementById('tb-inv');
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">加载中...</td></tr>';
-        try {
-            const list = await apiFetch(`/api/inventory?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无库存数据</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>${item.material_name || item.material_id}</td>
-                    <td>${item.warehouse_name || item.warehouse_id}</td>
-                    <td class="${item.quantity <= item.safety_stock ? 'warn-text' : ''}">${item.quantity}</td>
-                    <td>¥${Number(item.avg_cost || 0).toFixed(2)}</td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>';
-        }
+    async function loadPosBatches() { const el=document.getElementById('tb-pos'); el.innerHTML='<tr><td colspan="4" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/pos_batches?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.file_name}</td><td>${i.import_date}</td><td>${i.total_rows}</td><td>${i.status}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">暂无导入记录</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="4" class="empty">加载失败</td></tr>';} }
+    async function loadSalesRecords() { const el=document.getElementById('tb-records'); el.innerHTML='<tr><td colspan="4" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/sales_records?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.sale_date}</td><td>${i.dish_pos_sku}</td><td>${i.quantity}</td><td>¥${i.amount}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">暂无流水</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="4" class="empty">加载失败</td></tr>';} }
+    async function loadSalesDaily() {
+        const rev=document.getElementById('tb-sale-rev'); rev.innerHTML='<tr><td colspan="3" class="empty">加载中...</td></tr>';
+        const pro=document.getElementById('tb-sale-pro'); pro.innerHTML='<tr><td colspan="4" class="empty">加载中...</td></tr>';
+        try { const l=await apiFetch(`/api/reports/revenue_daily?store_id=${STORE_ID}`); rev.innerHTML=l.length?l.map(i=>`<tr><td>${i.revenue_date}</td><td>¥${i.total_revenue}</td><td>${i.total_orders}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">暂无数据</td></tr>'; } catch(e) {}
+        try { const l=await apiFetch(`/api/reports/profit_daily?store_id=${STORE_ID}`); pro.innerHTML=l.length?l.map(i=>`<tr><td>${i.profit_date}</td><td>¥${i.revenue}</td><td>¥${i.cost}</td><td class="${i.pretax_profit>=0?'':'warn-text'}">¥${i.pretax_profit}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">暂无数据</td></tr>'; } catch(e) {}
     }
-
-    // 仅显示库存预警
-    async function loadInventoryWarning() {
-        const tbody = document.getElementById('tb-inv');
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">加载中...</td></tr>';
-        try {
-            const list = await apiFetch(`/api/inventory/warning?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty">没有预警项 🎉</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map(item => `
-                <tr>
-                    <td>${item.material_name}</td>
-                    <td>${item.material_unit || '-'}</td>
-                    <td class="warn-text">${item.quantity}</td>
-                    <td>安全:${item.safety_stock}</td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>';
-        }
-    }
+    async function loadInventory() { const el=document.getElementById('tb-inv'); el.innerHTML='<tr><td colspan="4" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/inventory?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.material_name||i.material_id}</td><td>${i.warehouse_name||i.warehouse_id}</td><td class="${i.quantity<=i.safety_stock?'warn-text':''}">${i.quantity}</td><td>¥${i.avg_cost}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">暂无库存</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="4" class="empty">加载失败</td></tr>';} }
+    async function loadInventoryWarning() { const el=document.getElementById('tb-inv'); el.innerHTML='<tr><td colspan="4" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/inventory/warning?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.material_name}</td><td>${i.material_unit}</td><td class="warn-text">${i.quantity}</td><td>安全:${i.safety_stock}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">没有预警 🎉</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="4" class="empty">加载失败</td></tr>';} }
+    async function loadReports() { const el=document.getElementById('tb-asset'); el.innerHTML='<tr><td colspan="3" class="empty">加载中...</td></tr>'; try{const l=await apiFetch(`/api/assets?store_id=${STORE_ID}`); el.innerHTML=l.length?l.map(i=>`<tr><td>${i.name}</td><td>¥${i.purchase_amount}</td><td>¥${i.monthly_depreciation}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">暂无资产</td></tr>';}catch(e){el.innerHTML='<tr><td colspan="3" class="empty">加载失败</td></tr>';} }
 
     /* ==========================================================
-       数据加载：财务报表
+       BOM 配方弹窗（配方管理闭环）
        ========================================================== */
-
-    async function loadReports() {
-        // 1. 每日营收
-        const revBody = document.getElementById('tb-rev');
-        revBody.innerHTML = '<tr><td colspan="3" class="empty">加载中...</td></tr>';
-        try {
-            const list = await apiFetch(`/api/reports/revenue_daily?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                revBody.innerHTML = '<tr><td colspan="3" class="empty">暂无数据</td></tr>';
-            } else {
-                revBody.innerHTML = list.map(item => `
-                    <tr>
-                        <td>${item.revenue_date}</td>
-                        <td>¥${Number(item.total_revenue).toFixed(2)}</td>
-                        <td>${item.total_orders}</td>
-                    </tr>
-                `).join('');
-            }
-        } catch (e) {
-            revBody.innerHTML = '<tr><td colspan="3" class="empty">加载失败</td></tr>';
-        }
-
-        // 2. 每日利润
-        const profitBody = document.getElementById('tb-pro');
-        profitBody.innerHTML = '<tr><td colspan="4" class="empty">加载中...</td></tr>';
-        try {
-            const list = await apiFetch(`/api/reports/profit_daily?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                profitBody.innerHTML = '<tr><td colspan="4" class="empty">暂无数据</td></tr>';
-            } else {
-                profitBody.innerHTML = list.map(item => `
-                    <tr>
-                        <td>${item.profit_date}</td>
-                        <td>¥${Number(item.revenue).toFixed(2)}</td>
-                        <td>¥${Number(item.cost).toFixed(2)}</td>
-                        <td class="${item.pretax_profit >= 0 ? '' : 'warn-text'}">¥${Number(item.pretax_profit).toFixed(2)}</td>
-                    </tr>
-                `).join('');
-            }
-        } catch (e) {
-            profitBody.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>';
-        }
-
-        // 3. 固定资产
-        const assetBody = document.getElementById('tb-asset');
-        assetBody.innerHTML = '<tr><td colspan="3" class="empty">加载中...</td></tr>';
-        try {
-            const list = await apiFetch(`/api/assets?store_id=${STORE_ID}`);
-            if (list.length === 0) {
-                assetBody.innerHTML = '<tr><td colspan="3" class="empty">暂无资产</td></tr>';
-            } else {
-                assetBody.innerHTML = list.map(item => `
-                    <tr>
-                        <td>${item.name}</td>
-                        <td>¥${Number(item.purchase_amount).toFixed(2)}</td>
-                        <td>¥${Number(item.monthly_depreciation).toFixed(2)}</td>
-                    </tr>
-                `).join('');
-            }
-        } catch (e) {
-            assetBody.innerHTML = '<tr><td colspan="3" class="empty">加载失败</td></tr>';
-        }
-    }
-
-    /* ==========================================================
-       BOM 配方管理（弹窗内操作）
-       ========================================================== */
-
-    // 打开配方管理弹窗
     async function openBom(dishId, dishName) {
         const modal = document.getElementById('modal');
         const title = document.getElementById('modal-title');
         const form = document.getElementById('modal-form');
-
         modal.classList.add('show');
         title.textContent = `配方管理：${dishName}`;
-
-        // 弹窗内动态构建：配方列表 + 添加配方表单
-        form.innerHTML = `
-            <div id="bom-list" style="margin-bottom:15px;">
-                <div class="empty">加载配方中...</div>
-            </div>
-            <div style="border-top:1px solid #eee; padding-top:15px;">
-                <div class="form-row">
-                    <label>选择原材料</label>
-                    <select id="bom-mid"></select>
-                </div>
-                <div class="form-row">
-                    <label>单份用量</label>
-                    <input id="bom-qty" type="number" step="0.0001" value="0.1">
-                </div>
-                <div class="form-row">
-                    <label>损耗率（小数，如 0.05 表示 5%）</label>
-                    <input id="bom-loss" type="number" step="0.0001" value="0">
-                </div>
-                <button class="btn pri" onclick="addBom(${dishId})" style="width:100%; margin-top:10px;">+ 添加配方材料</button>
-            </div>
-        `;
-
-        // 加载原材料下拉选项
-        const materials = await apiFetch(`/api/materials?store_id=${STORE_ID}`);
-        const select = document.getElementById('bom-mid');
-        select.innerHTML = materials.map(m => `<option value="${m.id}">${m.name}（${m.unit}）</option>`).join('');
-
-        // 加载该菜品已有的配方
+        form.innerHTML = `<div id="bom-list" style="margin-bottom:15px;"><div class="empty">加载配方中...</div></div><div style="border-top:1px solid #eee; padding-top:15px;"><div class="form-row"><label>选择原材料</label><select id="bom-mid"></select></div><div class="form-row"><label>单份用量</label><input id="bom-qty" type="number" step="0.0001" value="0.1"></div><div class="form-row"><label>损耗率</label><input id="bom-loss" type="number" step="0.0001" value="0"></div><button class="btn pri" onclick="addBom(${dishId})" style="width:100%; margin-top:10px;">+ 添加配方材料</button></div>`;
+        const mats = await apiFetch(`/api/materials?store_id=${STORE_ID}`);
+        document.getElementById('bom-mid').innerHTML = mats.map(m => `<option value="${m.id}">${m.name}（${m.unit}）</option>`).join('');
         await loadBomList(dishId);
     }
-
-    // 加载 BOM 列表（在弹窗内展示）
     async function loadBomList(dishId) {
         const container = document.getElementById('bom-list');
-        container.innerHTML = '<div class="empty">加载中...</div>';
         try {
             const list = await apiFetch(`/api/bom?dish_id=${dishId}`);
-            if (list.length === 0) {
-                container.innerHTML = '<div class="empty">暂无配方，请添加</div>';
-                return;
-            }
-            container.innerHTML = `
-                <table style="font-size:12px;">
-                    <thead>
-                        <tr><th>原材料</th><th>用量</th><th>损耗率</th><th>操作</th></tr>
-                    </thead>
-                    <tbody>
-                        ${list.map(item => `
-                            <tr>
-                                <td>${item.material_name || item.material_id}</td>
-                                <td>${item.quantity} ${item.unit}</td>
-                                <td>${(item.loss_rate * 100).toFixed(1)}%</td>
-                                <td>
-                                    <button class="btn warn" onclick="deleteBom(${item.id}, ${dishId})">删</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        } catch (e) {
-            container.innerHTML = '<div class="empty">加载失败</div>';
-        }
+            container.innerHTML = list.length ? `<table style="font-size:12px;"><thead><tr><th>原材料</th><th>用量</th><th>损耗</th><th>操作</th></tr></thead><tbody>${list.map(i => `<tr><td>${i.material_name}</td><td>${i.quantity}${i.unit}</td><td>${(i.loss_rate*100).toFixed(1)}%</td><td><button class="btn warn" onclick="delBom(${i.id},${dishId})">删</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">暂无配方</div>';
+        } catch (e) { container.innerHTML = '<div class="empty">加载失败</div>'; }
     }
-
-    // 添加一条配方材料
     async function addBom(dishId) {
-        const materialId = Number(document.getElementById('bom-mid').value);
-        const quantity = Number(document.getElementById('bom-qty').value);
-        const lossRate = Number(document.getElementById('bom-loss').value);
-
-        if (!materialId || !quantity) {
-            alert('请选择原材料并填写用量');
-            return;
-        }
-
-        await apiFetch('/api/bom', {
-            method: 'POST',
-            body: JSON.stringify({
-                dish_id: dishId,
-                material_id: materialId,
-                quantity: quantity,
-                loss_rate: lossRate,
-                unit: 'kg',
-                version: 1,
-                is_active: true
-            })
-        });
-
-        // 刷新配方列表
+        const mid = +document.getElementById('bom-mid').value;
+        const qty = +document.getElementById('bom-qty').value;
+        const loss = +document.getElementById('bom-loss').value;
+        if (!mid || !qty) { alert('请选择材料并填写用量'); return; }
+        await apiFetch('/api/bom', { method: 'POST', body: JSON.stringify({ dish_id: dishId, material_id: mid, quantity: qty, loss_rate: loss, unit: 'kg', version: 1, is_active: true }) });
         await loadBomList(dishId);
     }
+    async function delBom(bomId, dishId) { if (!confirm('确定删除？')) return; await apiFetch('/api/bom/' + bomId, { method: 'DELETE' }); await loadBomList(dishId); }
 
-    // 删除一条配方材料
-    async function deleteBom(bomId, dishId) {
-        if (!confirm('确定删除该配方材料吗？')) return;
-        await apiFetch(`/api/bom/${bomId}`, { method: 'DELETE' });
-        await loadBomList(dishId);
-    }
-
-    /* ==========================================================
-       采购单明细 / 盘点单明细（占位功能）
-       ========================================================== */
-
-    // 采购单明细弹窗（后续可扩展成完整的明细录入）
-    async function openPurchaseItems(orderId) {
-        const modal = document.getElementById('modal');
-        const title = document.getElementById('modal-title');
-        const form = document.getElementById('modal-form');
-
-        modal.classList.add('show');
-        title.textContent = '采购单明细';
-        form.innerHTML = '<div class="empty">加载中...</div>';
-
-        try {
-            const list = await apiFetch(`/api/purchase_orders/${orderId}/items`);
-            if (list.length === 0) {
-                form.innerHTML = '<div class="empty">暂无明细</div>';
-                return;
-            }
-            form.innerHTML = `
-                <table style="font-size:12px;">
-                    <thead>
-                        <tr><th>原材料</th><th>数量</th><th>单价</th><th>金额</th></tr>
-                    </thead>
-                    <tbody>
-                        ${list.map(item => `
-                            <tr>
-                                <td>${item.material_name || item.material_id}</td>
-                                <td>${item.quantity}</td>
-                                <td>¥${Number(item.unit_price).toFixed(2)}</td>
-                                <td>¥${Number(item.amount).toFixed(2)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        } catch (e) {
-            form.innerHTML = '<div class="empty">加载失败</div>';
-        }
-    }
-
-    // 盘点单明细弹窗（占位）
-    async function openTakeItems(takeId) {
-        alert('盘点明细功能：可在 /docs 接口文档中测试，后续可根据需求单独扩展。');
-    }
-
-    /* ==========================================================
-       页面初始化
-       ========================================================== */
-
-    // 页面加载完成后，默认打开数据看板，并加载看板数据
+    // 初始化系统
     window.addEventListener('load', () => {
+        // 绑定底部导航的点击事件，替代内联 onclick，防止事件丢失
+        document.querySelectorAll('.tab-bar .tab-item').forEach((item, index) => {
+            item.addEventListener('click', () => switchPage(pageList[index]));
+        });
         loadDashboard();
     });
-
-    // 监听底部导航栏点击（替代 onclick 内联写法，避免 event 在部分浏览器下为 undefined）
-    document.querySelectorAll('.tab-bar .tab-item').forEach((item, index) => {
-        item.addEventListener('click', () => {
-            const pageName = ['dashboard', 'master', 'business', 'inventory', 'reports'][index];
-            switchPage(pageName);
-        });
-    });
-
 </script>
 </body>
 </html>
-
-
