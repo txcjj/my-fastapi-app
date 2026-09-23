@@ -33,7 +33,6 @@
   .kpi-label{color:var(--text-muted);font-size:12px;margin-bottom:8px}
   .kpi-value{font-size:24px;font-weight:700}
   .kpi-value.green{color:var(--primary)}
-  .kpi-value.red{color:var(--danger)}
   .kpi-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
   .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
   .btn-primary{background:var(--primary);color:#fff}
@@ -62,9 +61,6 @@
   .form-item label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px}
   .form-item input,.form-item select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff}
   .form-item input:focus,.form-item select:focus{outline:none;border-color:var(--primary)}
-  .upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px;text-align:center;color:var(--text-muted);cursor:pointer;transition:all .15s}
-  .upload-zone:hover{border-color:var(--primary);background:var(--primary-light)}
-  .upload-zone .icon{font-size:32px;margin-bottom:8px}
   .alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
   .alert-warn{background:var(--warning-bg);color:var(--warning)}
   .alert-danger{background:var(--danger-bg);color:var(--danger)}
@@ -77,7 +73,6 @@
   .report-card .r-title{font-weight:600;margin-bottom:4px}
   .report-card .r-desc{font-size:12px;color:var(--text-muted)}
   .text-muted{color:var(--text-muted)}
-  .mt-16{margin-top:16px}
   .flex{display:flex}.gap-8{gap:8px}
   .toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px}
   .toast{background:#1F2937;color:#fff;padding:12px 18px;border-radius:8px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.18);animation:slideIn .2s ease;max-width:360px;transition:opacity .3s}
@@ -101,7 +96,6 @@
     <div class="logo">🍚 <span>味佳</span>进销存</div>
     <div class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span>首页看板</div>
     <div class="nav-item" data-page="suppliers"><span class="nav-icon">🏭</span>供应商管理</div>
-    <div class="nav-item" data-page="materials"><span class="nav-icon">🥬</span>原材料管理</div>
     <div class="nav-item" data-page="purchase"><span class="nav-icon">📝</span>采购管理</div>
     <div class="nav-item" data-page="stockin"><span class="nav-icon">📦</span>入库管理</div>
     <div class="nav-item" data-page="inventory"><span class="nav-icon">🗄️</span>库存管理</div>
@@ -119,17 +113,19 @@
     </div>
 
     <div class="content">
+      <!-- 首页 -->
       <div class="page active" id="page-dashboard">
         <h1 class="page-title">首页看板</h1>
         <p class="page-sub">实时经营概况</p>
         <div class="kpi-grid">
           <div class="kpi-card"><div class="kpi-label">供应商数</div><div class="kpi-value green" id="kpi-suppliers">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">原材料数</div><div class="kpi-value green" id="kpi-materials">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">采购单数</div><div class="kpi-value green" id="kpi-po">—</div></div>
           <div class="kpi-card"><div class="kpi-label">菜品数</div><div class="kpi-value green" id="kpi-dishes">—</div></div>
           <div class="kpi-card"><div class="kpi-label">库存项数</div><div class="kpi-value" id="kpi-inventory">—</div></div>
         </div>
       </div>
 
+      <!-- 供应商 -->
       <div class="page" id="page-suppliers">
         <h1 class="page-title">供应商管理</h1>
         <p class="page-sub">维护供货商基本信息</p>
@@ -145,24 +141,10 @@
         </div>
       </div>
 
-      <div class="page" id="page-materials">
-        <h1 class="page-title">原材料管理</h1>
-        <p class="page-sub">维护原材料主数据与安全库存</p>
-        <div class="card">
-          <div class="toolbar">
-            <input type="text" id="material-search" placeholder="搜索原材料名称" style="width:260px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;">
-            <button class="btn btn-primary" onclick="openMaterialForm()">＋ 新增原材料</button>
-          </div>
-          <table>
-            <thead><tr><th>名称</th><th>分类</th><th>单位</th><th>规格</th><th>安全库存</th><th>最新单价</th><th>操作</th></tr></thead>
-            <tbody id="material-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
+      <!-- 采购管理 -->
       <div class="page" id="page-purchase">
         <h1 class="page-title">采购管理</h1>
-        <p class="page-sub">提交后需经理审批</p>
+        <p class="page-sub">直接填写原材料名称，提交时自动建档</p>
         <div class="card">
           <div class="form-grid">
             <div class="form-item"><label>供应商 *</label><select id="po-supplier"><option value="">请选择</option></select></div>
@@ -174,7 +156,7 @@
             <button class="btn btn-outline btn-sm" onclick="addPurchaseRow()">＋ 增加一行</button>
           </div>
           <table>
-            <thead><tr><th style="width:22%">原材料</th><th style="width:14%">数量</th><th style="width:12%">单位</th><th style="width:16%">预估单价</th><th style="width:16%">金额</th><th style="width:12%">操作</th></tr></thead>
+            <thead><tr><th style="width:24%">原材料</th><th style="width:14%">数量</th><th style="width:12%">单位</th><th style="width:16%">预估单价</th><th style="width:16%">金额</th><th style="width:10%">操作</th></tr></thead>
             <tbody id="purchase-tbody"></tbody>
           </table>
           <div class="flex" style="justify-content:flex-end;margin-top:16px;">
@@ -187,24 +169,35 @@
         <div class="card">
           <div class="card-header"><h3>采购单列表</h3></div>
           <table>
-            <thead><tr><th>采购单号</th><th>供应商</th><th>采购人</th><th>金额</th><th>状态</th><th>操作</th></tr></thead>
+            <thead><tr><th>采购单号</th><th>供应商</th><th>采购人</th><th>状态</th><th>操作</th></tr></thead>
             <tbody id="po-list-tbody"></tbody>
           </table>
         </div>
       </div>
 
+      <!-- 入库管理 -->
       <div class="page" id="page-stockin">
         <h1 class="page-title">入库管理</h1>
-        <p class="page-sub">关联已审批的采购单，审批通过后计入库存</p>
+        <p class="page-sub">关联已审批的采购单，填写生产日期与保质期</p>
         <div class="card">
           <div class="form-grid">
             <div class="form-item"><label>关联采购单 *</label><select id="si-po-select" onchange="loadPOItems()"><option value="">请选择</option></select></div>
-            <div class="form-item"><label>入库仓库</label><select id="si-warehouse"><option>一号食材库</option></select></div>
+            <div class="form-item"><label>入库仓库</label><select id="si-warehouse"><option value="1">一号食材库</option></select></div>
             <div class="form-item"><label>实际到货日期</label><input type="date" id="si-date"></div>
           </div>
           <div class="card-header"><h3>入库明细</h3></div>
           <table>
-            <thead><tr><th>原材料</th><th>采购数量</th><th>实际入库</th><th>采购单价</th><th>实际单价</th><th>批次号</th></tr></thead>
+            <thead>
+              <tr>
+                <th>原材料</th>
+                <th>采购数量</th>
+                <th>实际入库</th>
+                <th>采购单价</th>
+                <th>实际单价</th>
+                <th>生产日期</th>
+                <th>保质期(天)</th>
+              </tr>
+            </thead>
             <tbody id="stockin-tbody"></tbody>
           </table>
           <div class="flex" style="justify-content:flex-end;gap:10px;margin-top:16px;">
@@ -220,6 +213,7 @@
         </div>
       </div>
 
+      <!-- 库存管理 -->
       <div class="page" id="page-inventory">
         <h1 class="page-title">实时库存</h1>
         <p class="page-sub">当前各仓库原材料库存</p>
@@ -228,12 +222,22 @@
         </div>
         <div class="card">
           <table>
-            <thead><tr><th>原材料</th><th>仓库ID</th><th>当前库存</th><th>加权平均成本</th><th>更新时间</th></tr></thead>
+            <thead>
+              <tr>
+                <th>原材料</th>
+                <th>仓库</th>
+                <th>当前库存</th>
+                <th>加权平均成本</th>
+                <th>最后使用日期</th>
+                <th>更新时间</th>
+              </tr>
+            </thead>
             <tbody id="inventory-tbody"></tbody>
           </table>
         </div>
       </div>
 
+      <!-- 菜品与配方 -->
       <div class="page" id="page-dishes">
         <h1 class="page-title">菜品与配方</h1>
         <p class="page-sub">维护菜品及 BOM 配方</p>
@@ -274,6 +278,7 @@
         </div>
       </div>
 
+      <!-- 销售导入 -->
       <div class="page" id="page-salesimport">
         <h1 class="page-title">销售数据导入</h1>
         <p class="page-sub">记录 POS 导入批次</p>
@@ -297,6 +302,7 @@
         </div>
       </div>
 
+      <!-- 财务 -->
       <div class="page" id="page-finance">
         <h1 class="page-title">财务管理</h1>
         <p class="page-sub">每日成本与固定资产</p>
@@ -321,6 +327,7 @@
         </div>
       </div>
 
+      <!-- 报表 -->
       <div class="page" id="page-reports">
         <h1 class="page-title">报表中心</h1>
         <p class="page-sub">数据统计报表</p>
@@ -334,6 +341,7 @@
         </div>
       </div>
 
+      <!-- 系统设置 -->
       <div class="page" id="page-settings">
         <h1 class="page-title">系统设置</h1>
         <p class="page-sub">用户与权限管理</p>
@@ -345,22 +353,17 @@
           </table>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
 <script>
-/* ============================
-   全局配置与工具
-   ============================ */
-const API_BASE = "";       // 同域，留空
-const STORE_ID = 1;        // 默认门店 ID
+const API_BASE = "";
+const STORE_ID = 1;
 
 const CACHE = {
-  suppliers: [], users: [], materials: [], warehouses: [],
-  categories: [], dishes: [], bom: [], inventory: [],
-  purchaseOrders: [], stockIn: [], posBatches: [], assets: []
+  suppliers: [], users: [], materials: [],
+  purchaseOrders: [], dishes: []
 };
 
 async function api(method, path, body) {
@@ -382,11 +385,9 @@ const apiDel = (p) => api('DELETE', p);
 
 function fmt(n) { return '¥' + Number(n || 0).toFixed(2); }
 function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
-
 function emptyRow(colspan, icon, text) {
   return `<tr class="empty-row"><td colspan="${colspan}"><span class="e-icon">${icon}</span>${text}</td></tr>`;
 }
-
 function toast(msg, type = '', duration = 2600) {
   let c = document.querySelector('.toast-container');
   if (!c) { c = document.createElement('div'); c.className = 'toast-container'; document.body.appendChild(c); }
@@ -396,7 +397,6 @@ function toast(msg, type = '', duration = 2600) {
   c.appendChild(t);
   setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, duration);
 }
-
 function openModal(opts) {
   closeModal();
   const mask = document.createElement('div');
@@ -430,8 +430,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 const PAGE_LOADERS = {
   dashboard: loadDashboard,
   suppliers: loadSuppliers,
-  materials: loadMaterials,
-  purchase: loadPurchaseOrders,
+  purchase: loadPurchase,
   stockin: loadStockInList,
   inventory: loadInventory,
   dishes: loadDishes,
@@ -440,27 +439,23 @@ const PAGE_LOADERS = {
   settings: loadUsers,
 };
 
-/* ============================
-   1. 首页看板
-   ============================ */
+/* ========== 首页 ========== */
 async function loadDashboard() {
   try {
-    const [s, m, d, inv] = await Promise.all([
+    const [s, po, d, inv] = await Promise.all([
       apiGet('/api/suppliers').catch(() => []),
-      apiGet('/api/materials').catch(() => []),
+      apiGet('/api/purchase-orders').catch(() => []),
       apiGet('/api/dishes').catch(() => []),
       apiGet('/api/inventory').catch(() => []),
     ]);
     document.getElementById('kpi-suppliers').textContent = s.length;
-    document.getElementById('kpi-materials').textContent = m.length;
+    document.getElementById('kpi-po').textContent = po.length;
     document.getElementById('kpi-dishes').textContent = d.length;
     document.getElementById('kpi-inventory').textContent = inv.length;
   } catch (e) { console.error(e); }
 }
 
-/* ============================
-   2. 供应商
-   ============================ */
+/* ========== 供应商 ========== */
 let editingSupplierId = null;
 let allSuppliers = [];
 
@@ -479,7 +474,6 @@ async function loadSuppliers() {
     tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
   }
 }
-
 function renderSuppliers(list) {
   const tbody = document.getElementById('supplier-tbody');
   if (!list.length) { tbody.innerHTML = emptyRow(6, '🏭', '暂无匹配供应商'); return; }
@@ -496,15 +490,13 @@ function renderSuppliers(list) {
       </td>
     </tr>`).join('');
 }
-
 document.getElementById('supplier-search')?.addEventListener('input', function () {
   const kw = this.value.trim().toLowerCase();
   renderSuppliers(allSuppliers.filter(s =>
     (s.name || '').toLowerCase().includes(kw) || (s.contact || '').toLowerCase().includes(kw)
   ));
 });
-
-function openSupplierForm(btn) {
+function openSupplierForm() {
   editingSupplierId = null;
   openModal({
     title: '新增供应商',
@@ -512,7 +504,6 @@ function openSupplierForm(btn) {
       <div class="form-grid" style="grid-template-columns:1fr 1fr;">
         <div class="form-item"><label>供应商名称 *</label><input id="sup-name"></div>
         <div class="form-item"><label>联系人</label><input id="sup-contact"></div>
-        <div class="form-item"><label>联系电话</label><input id
         <div class="form-item"><label>联系电话</label><input id="sup-phone"></div>
         <div class="form-item"><label>合作状态</label>
           <select id="sup-status"><option value="active">合作中</option><option value="inactive">已停止合作</option></select>
@@ -524,7 +515,6 @@ function openSupplierForm(btn) {
       <button class="btn btn-primary" onclick="saveSupplier(false)">保存</button>`
   });
 }
-
 function editSupplier(id) {
   const s = allSuppliers.find(x => x.id === id);
   if (!s) return;
@@ -549,13 +539,11 @@ function editSupplier(id) {
       <button class="btn btn-primary" onclick="saveSupplier(true)">保存</button>`
   });
 }
-
 async function saveSupplier(isEdit) {
   const name = document.getElementById('sup-name').value.trim();
   if (!name) { toast('请填写供应商名称', 'error'); return; }
   const payload = {
-    store_id: STORE_ID,
-    name,
+    store_id: STORE_ID, name,
     contact: document.getElementById('sup-contact').value.trim() || null,
     phone: document.getElementById('sup-phone').value.trim() || null,
     address: document.getElementById('sup-addr').value.trim() || null,
@@ -571,188 +559,52 @@ async function saveSupplier(isEdit) {
     }
     closeModal();
     await loadSuppliers();
-  } catch (e) {
-    toast('保存失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('保存失败：' + e.message, 'error'); }
 }
-
 async function delSupplier(id) {
-  if (!confirm('确认删除该供应商？此操作不可恢复。')) return;
+  if (!confirm('确认删除？')) return;
   try {
     await apiDel(`/api/suppliers/${id}`);
     toast('已删除', 'success');
     await loadSuppliers();
-  } catch (e) {
-    toast('删除失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('删除失败：' + e.message, 'error'); }
 }
 
-/* ============================
-   3. 原材料
-   ============================ */
-let allMaterials = [];
-let editingMaterialId = null;
-
-async function loadMaterials() {
-  const tbody = document.getElementById('material-tbody');
-  tbody.innerHTML = '<tr><td colspan="7" class="loading">加载中...</td></tr>';
-  try {
-    allMaterials = await apiGet('/api/materials');
-    CACHE.materials = allMaterials;
-    if (!allMaterials.length) {
-      tbody.innerHTML = emptyRow(7, '🥬', '暂无原材料');
-      return;
-    }
-    renderMaterials(allMaterials);
-  } catch (e) {
-    tbody.innerHTML = emptyRow(7, '⚠️', '加载失败：' + e.message);
-  }
-}
-
-function renderMaterials(list) {
-  const tbody = document.getElementById('material-tbody');
-  if (!list.length) { tbody.innerHTML = emptyRow(7, '🥬', '暂无匹配原材料'); return; }
-  tbody.innerHTML = list.map(m => `
-    <tr>
-      <td>${m.name}</td>
-      <td>${m.category_id || '—'}</td>
-      <td>${m.unit || '—'}</td>
-      <td>${m.spec || '—'}</td>
-      <td>${m.safety_stock || 0}</td>
-      <td>${fmt(m.latest_purchase_price)}</td>
-      <td>
-        <button class="btn btn-outline btn-sm" onclick="editMaterial(${m.id})">编辑</button>
-        <button class="btn btn-danger btn-sm" onclick="delMaterial(${m.id})">删除</button>
-      </td>
-    </tr>`).join('');
-}
-
-document.getElementById('material-search')?.addEventListener('input', function () {
-  const kw = this.value.trim().toLowerCase();
-  renderMaterials(allMaterials.filter(m => (m.name || '').toLowerCase().includes(kw)));
-});
-
-function openMaterialForm() {
-  editingMaterialId = null;
-  openModal({
-    title: '新增原材料',
-    body: `
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="form-item"><label>名称 *</label><input id="mat-name"></div>
-        <div class="form-item"><label>单位 *</label><input id="mat-unit" value="kg"></div>
-        <div class="form-item"><label>规格</label><input id="mat-spec"></div>
-        <div class="form-item"><label>安全库存</label><input type="number" id="mat-safe" value="0" step="0.01"></div>
-        <div class="form-item"><label>最新单价</label><input type="number" id="mat-price" value="0" step="0.01"></div>
-        <div class="form-item"><label>保质期(天)</label><input type="number" id="mat-shelf" value="0"></div>
-      </div>`,
-    footer: `
-      <button class="btn btn-outline" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveMaterial(false)">保存</button>`
-  });
-}
-
-function editMaterial(id) {
-  const m = allMaterials.find(x => x.id === id);
-  if (!m) return;
-  editingMaterialId = id;
-  openModal({
-    title: '编辑原材料',
-    body: `
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="form-item"><label>名称 *</label><input id="mat-name" value="${m.name || ''}"></div>
-        <div class="form-item"><label>单位 *</label><input id="mat-unit" value="${m.unit || 'kg'}"></div>
-        <div class="form-item"><label>规格</label><input id="mat-spec" value="${m.spec || ''}"></div>
-        <div class="form-item"><label>安全库存</label><input type="number" id="mat-safe" value="${m.safety_stock || 0}" step="0.01"></div>
-        <div class="form-item"><label>最新单价</label><input type="number" id="mat-price" value="${m.latest_purchase_price || 0}" step="0.01"></div>
-        <div class="form-item"><label>保质期(天)</label><input type="number" id="mat-shelf" value="${m.shelf_life_days || 0}"></div>
-      </div>`,
-    footer: `
-      <button class="btn btn-outline" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveMaterial(true)">保存</button>`
-  });
-}
-
-async function saveMaterial(isEdit) {
-  const name = document.getElementById('mat-name').value.trim();
-  const unit = document.getElementById('mat-unit').value.trim();
-  if (!name) { toast('请填写名称', 'error'); return; }
-  if (!unit) { toast('请填写单位', 'error'); return; }
-  const payload = {
-    store_id: STORE_ID,
-    name, unit,
-    spec: document.getElementById('mat-spec').value.trim() || null,
-    safety_stock: num(document.getElementById('mat-safe').value),
-    latest_purchase_price: num(document.getElementById('mat-price').value),
-    shelf_life_days: parseInt(document.getElementById('mat-shelf').value) || 0,
-  };
-  try {
-    if (isEdit && editingMaterialId) {
-      await apiPut(`/api/materials/${editingMaterialId}`, payload);
-      toast('原材料已更新', 'success');
-    } else {
-      await apiPost('/api/materials', payload);
-      toast('原材料已新增', 'success');
-    }
-    closeModal();
-    await loadMaterials();
-  } catch (e) {
-    toast('保存失败：' + e.message, 'error');
-  }
-}
-
-async function delMaterial(id) {
-  if (!confirm('确认删除该原材料？')) return;
-  try {
-    await apiDel(`/api/materials/${id}`);
-    toast('已删除', 'success');
-    await loadMaterials();
-  } catch (e) {
-    toast('删除失败：' + e.message, 'error');
-  }
-}
-
-/* ============================
-   4. 采购管理
-   ============================ */
+/* ========== 采购管理 ========== */
 let allPurchaseOrders = [];
 
-async function loadPurchaseOrders() {
-  // 加载下拉框数据
+async function loadPurchase() {
   try {
-    const [sups, users, mats] = await Promise.all([
+    const [sups, users] = await Promise.all([
       apiGet('/api/suppliers').catch(() => []),
       apiGet('/api/users').catch(() => []),
-      apiGet('/api/materials').catch(() => []),
     ]);
+    CACHE.suppliers = sups;
+    CACHE.users = users;
     const supSel = document.getElementById('po-supplier');
     supSel.innerHTML = '<option value="">请选择供应商</option>' +
       sups.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-
     const buyerSel = document.getElementById('po-buyer');
     buyerSel.innerHTML = '<option value="">请选择采购人</option>' +
       users.map(u => `<option value="${u.id}">${u.name}（${u.role}）</option>`).join('');
-
-    CACHE.materials = mats;
     if (!document.getElementById('po-date').value) {
       document.getElementById('po-date').value = new Date().toISOString().slice(0, 10);
     }
   } catch (e) { console.error(e); }
 
-  // 加载采购单列表
   const tbody = document.getElementById('po-list-tbody');
-  tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
   try {
     allPurchaseOrders = await apiGet('/api/purchase-orders');
     if (!allPurchaseOrders.length) {
-      tbody.innerHTML = emptyRow(6, '📄', '暂无采购单');
+      tbody.innerHTML = emptyRow(5, '📄', '暂无采购单');
       return;
     }
     renderPurchaseOrders(allPurchaseOrders);
   } catch (e) {
-    tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
+    tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
   }
 
-  // 入库下拉框同步
   const siSel = document.getElementById('si-po-select');
   if (siSel) {
     siSel.innerHTML = '<option value="">请选择已审批的采购单</option>' +
@@ -763,7 +615,7 @@ async function loadPurchaseOrders() {
 
 function renderPurchaseOrders(list) {
   const tbody = document.getElementById('po-list-tbody');
-  if (!list.length) { tbody.innerHTML = emptyRow(6, '📄', '暂无采购单'); return; }
+  if (!list.length) { tbody.innerHTML = emptyRow(5, '📄', '暂无采购单'); return; }
   tbody.innerHTML = list.map(p => {
     const sup = CACHE.suppliers.find(s => s.id === p.supplier_id);
     const badge = p.status === 'approved' ? 'badge-approved' :
@@ -774,91 +626,43 @@ function renderPurchaseOrders(list) {
       <td>${p.order_no}</td>
       <td>${sup ? sup.name : p.supplier_id}</td>
       <td>${p.created_by || '—'}</td>
-      <td>—</td>
       <td><span class="badge ${badge}">${label}</span></td>
       <td>
-        ${p.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approvePO(${p.id})">审批</button>` : ''}
+        ${p.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approvePO(${p.id}, '${p.order_no}', ${p.supplier_id}, ${p.created_by || 'null'})">审批</button>` : ''}
         <button class="btn btn-danger btn-sm" onclick="delPurchase(${p.id})">删除</button>
       </td>
     </tr>`;
   }).join('');
 }
 
-function purchaseRowHtml(ing = '', qty = 0, price = 0) {
-  const matOpts = CACHE.materials.map(m =>
-    `<option value="${m.id}" data-unit="${m.unit}" data-price="${m.latest_purchase_price || 0}" ${String(m.id) === String(ing) ? 'selected' : ''}>${m.name}</option>`
-  ).join('');
-  return `<tr>
-    <td><select class="po-ing">${matOpts}</select></td>
-    <td><input type="number" class="po-qty" value="${qty}" step="0.01"></td>
-    <td><input type="text" class="po-unit" value="" readonly></td>
-    <td><input type="number" class="po-price" value="${price}" step="0.01"></td>
-    <td><input type="text" class="po-amount" value="0.00" readonly></td>
-    <td><button class="btn btn-danger btn-sm" onclick="removePurchaseRow(this)">删除</button></td>
-  </tr>`;
-}
-
 function addPurchaseRow() {
   const tbody = document.getElementById('purchase-tbody');
-  if (!CACHE.materials.length) {
-    toast('请先添加原材料', 'warn');
-    return;
-  }
   tbody.querySelectorAll('.empty-row').forEach(r => r.remove());
-  tbody.insertAdjacentHTML('beforeend', purchaseRowHtml(CACHE.materials[0].id));
-  syncPurchaseRow(tbody.lastElementChild);
-  recalcPurchase();
-}
-
-function syncPurchaseRow(tr) {
-  const sel = tr.querySelector('.po-ing');
-  const opt = sel.options[sel.selectedIndex];
-  if (opt) {
-    tr.querySelector('.po-unit').value = opt.dataset.unit || '';
-    const p = opt.dataset.price || 0;
-    if (num(tr.querySelector('.po-price').value) === 0) {
-      tr.querySelector('.po-price').value = p;
-    }
-  }
-  const qty = num(tr.querySelector('.po-qty').value);
-  const price = num(tr.querySelector('.po-price').value);
-  tr.querySelector('.po-amount').value = (qty * price).toFixed(2);
-}
-
-function removePurchaseRow(btn) {
-  const tr = btn.closest('tr');
-  tr.remove();
+  tbody.insertAdjacentHTML('beforeend', `
+    <tr>
+      <td><input type="text" class="po-ing-name" placeholder="如：大米"></td>
+      <td><input type="number" class="po-qty" value="0" step="0.01"></td>
+      <td><input type="text" class="po-unit" value="kg"></td>
+      <td><input type="number" class="po-price" value="0" step="0.01"></td>
+      <td><input type="text" class="po-amount" value="0.00" readonly></td>
+      <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove(); recalcPurchase();">删除</button></td>
+    </tr>`);
   recalcPurchase();
 }
 
 function recalcPurchase() {
   let total = 0;
   document.querySelectorAll('#purchase-tbody tr').forEach(tr => {
-    const a = num(tr.querySelector('.po-amount')?.value);
-    total += a;
+    const qty = num(tr.querySelector('.po-qty')?.value);
+    const price = num(tr.querySelector('.po-price')?.value);
+    const amt = qty * price;
+    if (tr.querySelector('.po-amount')) tr.querySelector('.po-amount').value = amt.toFixed(2);
+    total += amt;
   });
-  document.getElementById('po-total').textContent = fmt(total);
+  const el = document.getElementById('po-total');
+  if (el) el.textContent = fmt(total);
 }
-
-document.getElementById('purchase-tbody')?.addEventListener('input', e => {
-  const tr = e.target.closest('tr');
-  if (!tr) return;
-  if (e.target.classList.contains('po-ing')) syncPurchaseRow(tr);
-  else {
-    const qty = num(tr.querySelector('.po-qty').value);
-    const price = num(tr.querySelector('.po-price').value);
-    tr.querySelector('.po-amount').value = (qty * price).toFixed(2);
-  }
-  recalcPurchase();
-});
-
-document.getElementById('purchase-tbody')?.addEventListener('change', e => {
-  if (e.target.classList.contains('po-ing')) {
-    const tr = e.target.closest('tr');
-    syncPurchaseRow(tr);
-    recalcPurchase();
-  }
-});
+document.getElementById('purchase-tbody')?.addEventListener('input', recalcPurchase);
 
 async function submitPurchase() {
   const supplierId = document.getElementById('po-supplier').value;
@@ -868,20 +672,19 @@ async function submitPurchase() {
 
   const rows = [...document.querySelectorAll('#purchase-tbody tr')];
   const items = rows.map(tr => ({
-    material_id: parseInt(tr.querySelector('.po-ing').value),
-    quantity: num(tr.querySelector('.po-qty').value),
-    unit_price: num(tr.querySelector('.po-price').value),
-  })).filter(it => it.material_id && it.quantity > 0);
+    name: tr.querySelector('.po-ing-name')?.value.trim(),
+    unit: tr.querySelector('.po-unit')?.value.trim() || 'kg',
+    quantity: num(tr.querySelector('.po-qty')?.value),
+    unit_price: num(tr.querySelector('.po-price')?.value),
+  })).filter(it => it.name && it.quantity > 0);
 
-  if (!items.length) { toast('请填写至少一条采购明细', 'error'); return; }
+  if (!items.length) { toast('请填写至少一条有效明细（原材料名称不能为空）', 'error'); return; }
 
   const total = items.reduce((s, it) => s + it.quantity * it.unit_price, 0);
-  const now = new Date();
-  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const orderNo = 'PO' + dateStr + String(Date.now()).slice(-4);
 
   try {
-    // 1. 创建采购单
     const po = await apiPost('/api/purchase-orders', {
       store_id: STORE_ID,
       supplier_id: parseInt(supplierId),
@@ -890,11 +693,16 @@ async function submitPurchase() {
       created_by: parseInt(buyerId),
     });
 
-    // 2. 创建明细
     for (const it of items) {
+      const mat = await apiPost('/api/materials-ensure', {
+        store_id: STORE_ID,
+        name: it.name,
+        unit: it.unit,
+        latest_purchase_price: it.unit_price,
+      });
       await apiPost('/api/purchase-order-items', {
         purchase_order_id: po.id,
-        material_id: it.material_id,
+        material_id: mat.id,
         quantity: it.quantity,
         unit_price: it.unit_price,
         amount: it.quantity * it.unit_price,
@@ -905,26 +713,25 @@ async function submitPurchase() {
     toast(`采购单 ${orderNo} 已提交（金额 ${fmt(total)}）`, 'success');
     document.getElementById('purchase-tbody').innerHTML = emptyRow(6, '📝', '暂无采购明细');
     document.getElementById('po-total').textContent = '¥0.00';
-    await loadPurchaseOrders();
+    await loadPurchase();
   } catch (e) {
     toast('提交失败：' + e.message, 'error');
   }
 }
 
-async function approvePO(id) {
-  if (!confirm('确认通过该采购单审批？')) return;
+async function approvePO(id, orderNo, supplierId, createdBy) {
+  if (!confirm('确认通过审批？')) return;
   try {
     await apiPut(`/api/purchase-orders/${id}`, {
       store_id: STORE_ID,
-      supplier_id: 1,
-      order_no: 'placeholder_' + id,
+      supplier_id: supplierId,
+      order_no: orderNo,
       status: 'approved',
+      created_by: createdBy,
     });
     toast('已通过审批', 'success');
-    await loadPurchaseOrders();
-  } catch (e) {
-    toast('操作失败：' + e.message, 'error');
-  }
+    await loadPurchase();
+  } catch (e) { toast('操作失败：' + e.message, 'error'); }
 }
 
 async function delPurchase(id) {
@@ -932,19 +739,15 @@ async function delPurchase(id) {
   try {
     await apiDel(`/api/purchase-orders/${id}`);
     toast('已删除', 'success');
-    await loadPurchaseOrders();
-  } catch (e) {
-    toast('删除失败：' + e.message, 'error');
-  }
+    await loadPurchase();
+  } catch (e) { toast('删除失败：' + e.message, 'error'); }
 }
 
-/* ============================
-   5. 入库管理
-   ============================ */
+/* ========== 入库管理 ========== */
 let allStockIn = [];
 
 async function loadStockInList() {
-  await loadPurchaseOrders();   // 同步采购单下拉
+  await loadPurchase();
   const tbody = document.getElementById('si-list-tbody');
   tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
   try {
@@ -979,37 +782,34 @@ async function loadPOItems() {
   const poId = document.getElementById('si-po-select').value;
   const tbody = document.getElementById('stockin-tbody');
   if (!poId) {
-    tbody.innerHTML = emptyRow(6, '📦', '请先选择关联的采购单');
+    tbody.innerHTML = emptyRow(7, '📦', '请先选择关联的采购单');
     return;
   }
-  tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="loading">加载中...</td></tr>';
   try {
-    const items = await apiGet(`/api/purchase-order-items?purchase_order_id=${poId}`);
-    // 后端未实现按 id 过滤，退化为全部拉取后前端过滤
-    let list = items;
-    if (!Array.isArray(items) || items.length === 0) {
-      const all = await apiGet('/api/purchase-order-items');
-      list = all.filter(it => String(it.purchase_order_id) === String(poId));
-    }
-    if (!list.length) {
-      tbody.innerHTML = emptyRow(6, '📦', '该采购单无明细');
+    let items = await apiGet(`/api/purchase-order-items`);
+    items = items.filter(it => String(it.purchase_order_id) === String(poId));
+    if (!items.length) {
+      tbody.innerHTML = emptyRow(7, '📦', '该采购单无明细');
       return;
     }
-    tbody.innerHTML = list.map(it => {
-      const mat = CACHE.materials.find(m => m.id === it.material_id);
-      const today = new Date().toISOString().slice(0, 10);
-      const expire = new Date(Date.now() + 365 * 864e5).toISOString().slice(0, 10);
+    const mats = await apiGet('/api/materials').catch(() => []);
+    CACHE.materials = mats;
+    const today = new Date().toISOString().slice(0, 10);
+    tbody.innerHTML = items.map(it => {
+      const mat = mats.find(m => m.id === it.material_id);
       return `<tr class="si-row" data-mat="${it.material_id}" data-po-qty="${it.quantity}" data-po-price="${it.unit_price}">
         <td>${mat ? mat.name : it.material_id}</td>
         <td>${it.quantity}</td>
         <td><input type="number" class="si-qty" value="${it.quantity}" step="0.01"></td>
         <td>${fmt(it.unit_price)}</td>
         <td><input type="number" class="si-price" value="${it.unit_price}" step="0.01"></td>
-        <td><input type="text" class="si-batch" value="BN${today.replace(/-/g, '')}${it.material_id}"></td>
+        <td><input type="date" class="si-prod" value="${today}"></td>
+        <td><input type="number" class="si-shelf" value="30" min="1"></td>
       </tr>`;
     }).join('');
   } catch (e) {
-    tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
+    tbody.innerHTML = emptyRow(7, '⚠️', '加载失败：' + e.message);
   }
 }
 
@@ -1022,44 +822,52 @@ async function submitStockIn() {
   try {
     const si = await apiPost('/api/stock-in', {
       store_id: STORE_ID,
-      warehouse_id: 1,
+      warehouse_id: parseInt(document.getElementById('si-warehouse').value) || 1,
       source_type: '采购',
       source_id: parseInt(poId),
       operator_id: 1,
     });
 
     for (const tr of rows) {
+      const prodDate = tr.querySelector('.si-prod').value;
+      const shelfDays = parseInt(tr.querySelector('.si-shelf').value) || 30;
+      const expire = new Date(prodDate);
+      expire.setDate(expire.getDate() + shelfDays);
+      const expireStr = expire.toISOString().slice(0, 10);
+
       await apiPost('/api/stock-in-items', {
         stock_in_id: si.id,
         material_id: parseInt(tr.dataset.mat),
         quantity: num(tr.querySelector('.si-qty').value),
         unit_cost: num(tr.querySelector('.si-price').value),
-        batch_no: tr.querySelector('.si-batch').value,
-        production_date: new Date().toISOString().slice(0, 10),
-        expire_date: new Date(Date.now() + 365 * 864e5).toISOString().slice(0, 10),
+        batch_no: null,
+        production_date: prodDate,
+        expire_date: expireStr,
       });
     }
 
     toast(`入库单已提交（#${si.id}）`, 'success');
-    document.getElementById('stockin-tbody').innerHTML = emptyRow(6, '📦', '请先选择关联的采购单');
+    document.getElementById('stockin-tbody').innerHTML = emptyRow(7, '📦', '请先选择关联的采购单');
     await loadStockInList();
-  } catch (e) {
-    toast('提交失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('提交失败：' + e.message, 'error'); }
 }
 
 async function approveSI(id) {
   if (!confirm('确认审批通过？通过后将计入库存。')) return;
   try {
-    // 更新入库单状态
+    const list = await apiGet('/api/stock-in');
+    const si = list.find(x => x.id === id);
+    if (!si) throw new Error('入库单不存在');
+
     await apiPut(`/api/stock-in/${id}`, {
-      store_id: STORE_ID,
-      warehouse_id: 1,
-      source_type: '采购',
+      store_id: si.store_id,
+      warehouse_id: si.warehouse_id,
+      source_type: si.source_type,
+      source_id: si.source_id,
+      operator_id: si.operator_id,
       status: 'approved',
     });
 
-    // 更新库存（移动加权平均）
     const items = await apiGet('/api/stock-in-items');
     const myItems = items.filter(it => String(it.stock_in_id) === String(id));
     for (const it of myItems) {
@@ -1071,16 +879,17 @@ async function approveSI(id) {
           ? (num(exist.quantity) * num(exist.avg_cost) + num(it.quantity) * num(it.unit_cost)) / newQty
           : num(it.unit_cost);
         await apiPut(`/api/inventory/${exist.id}`, {
-          store_id: STORE_ID,
-          warehouse_id: 1,
+          store_id: si.store_id,
+          warehouse_id: si.warehouse_id,
           material_id: it.material_id,
           quantity: newQty,
           avg_cost: newCost,
+          last_used_date: exist.last_used_date || null,
         });
       } else {
         await apiPost('/api/inventory', {
-          store_id: STORE_ID,
-          warehouse_id: 1,
+          store_id: si.store_id,
+          warehouse_id: si.warehouse_id,
           material_id: it.material_id,
           quantity: num(it.quantity),
           avg_cost: num(it.unit_cost),
@@ -1090,9 +899,7 @@ async function approveSI(id) {
 
     toast('已审批通过，库存已更新', 'success');
     await loadStockInList();
-  } catch (e) {
-    toast('操作失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('操作失败：' + e.message, 'error'); }
 }
 
 async function delSI(id) {
@@ -1101,37 +908,29 @@ async function delSI(id) {
     await apiDel(`/api/stock-in/${id}`);
     toast('已删除', 'success');
     await loadStockInList();
-  } catch (e) {
-    toast('删除失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('删除失败：' + e.message, 'error'); }
 }
 
-/* ============================
-   6. 库存管理
-   ============================ */
+/* ========== 库存 ========== */
 let allInventory = [];
-
 async function loadInventory() {
   const tbody = document.getElementById('inventory-tbody');
-  tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
   try {
     allInventory = await apiGet('/api/inventory');
     if (!allInventory.length) {
-      tbody.innerHTML = emptyRow(5, '🗄️', '暂无库存数据，请先完成采购入库');
+      tbody.innerHTML = emptyRow(6, '🗄️', '暂无库存数据');
       return;
     }
-    if (!CACHE.materials.length) {
-      CACHE.materials = await apiGet('/api/materials').catch(() => []);
-    }
+    if (!CACHE.materials.length) CACHE.materials = await apiGet('/api/materials').catch(() => []);
     renderInventory(allInventory);
   } catch (e) {
-    tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
+    tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
   }
 }
-
 function renderInventory(list) {
   const tbody = document.getElementById('inventory-tbody');
-  if (!list.length) { tbody.innerHTML = emptyRow(5, '🗄️', '暂无匹配库存'); return; }
+  if (!list.length) { tbody.innerHTML = emptyRow(6, '🗄️', '暂无匹配库存'); return; }
   tbody.innerHTML = list.map(i => {
     const mat = CACHE.materials.find(m => m.id === i.material_id);
     return `<tr>
@@ -1139,11 +938,11 @@ function renderInventory(list) {
       <td>仓库${i.warehouse_id || '—'}</td>
       <td>${Number(i.quantity || 0).toFixed(3).replace(/\.?0+$/, '')} ${mat ? mat.unit : ''}</td>
       <td>${fmt(i.avg_cost)}</td>
+      <td>${i.last_used_date || '—'}</td>
       <td>${(i.updated_at || '').replace('T', ' ').slice(0, 19)}</td>
     </tr>`;
   }).join('');
 }
-
 document.getElementById('inventory-search')?.addEventListener('input', function () {
   const kw = this.value.trim().toLowerCase();
   renderInventory(allInventory.filter(i => {
@@ -1152,9 +951,7 @@ document.getElementById('inventory-search')?.addEventListener('input', function 
   }));
 });
 
-/* ============================
-   7. 菜品与配方
-   ============================ */
+/* ========== 菜品与配方 ========== */
 let allDishes = [];
 let currentBomDishId = null;
 
@@ -1182,7 +979,6 @@ async function loadDishes() {
     tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
   }
 }
-
 function toggleDishForm(show) {
   document.getElementById('dish-form-card').style.display = show ? 'block' : 'none';
   if (show) {
@@ -1191,7 +987,6 @@ function toggleDishForm(show) {
     document.getElementById('new-dish-code').value = '';
   }
 }
-
 async function saveDish() {
   const name = document.getElementById('new-dish-name').value.trim();
   const price = num(document.getElementById('new-dish-price').value);
@@ -1201,35 +996,26 @@ async function saveDish() {
   if (!code) { toast('请填写 POS 编码', 'error'); return; }
   try {
     await apiPost('/api/dishes', {
-      store_id: STORE_ID,
-      name, selling_price: price, pos_sku: code, status: 'active',
+      store_id: STORE_ID, name, selling_price: price, pos_sku: code, status: 'active',
     });
     toast('菜品已新增', 'success');
     toggleDishForm(false);
     await loadDishes();
-  } catch (e) {
-    toast('保存失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('保存失败：' + e.message, 'error'); }
 }
-
 async function delDish(id) {
   if (!confirm('确认删除该菜品？')) return;
   try {
     await apiDel(`/api/dishes/${id}`);
     toast('已删除', 'success');
     await loadDishes();
-  } catch (e) {
-    toast('删除失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('删除失败：' + e.message, 'error'); }
 }
-
 async function openBom(dishId, dishName) {
   currentBomDishId = dishId;
   document.getElementById('bom-card').style.display = 'block';
   document.getElementById('bom-dish-name').textContent = dishName;
-  if (!CACHE.materials.length) {
-    CACHE.materials = await apiGet('/api/materials').catch(() => []);
-  }
+  if (!CACHE.materials.length) CACHE.materials = await apiGet('/api/materials').catch(() => []);
   const tbody = document.getElementById('bom-tbody');
   tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
   try {
@@ -1246,7 +1032,6 @@ async function openBom(dishId, dishName) {
     tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
   }
 }
-
 function bomRowHtml(materialId = '', qty = 0, unit = '', loss = 0) {
   const matOpts = CACHE.materials.map(m =>
     `<option value="${m.id}" data-unit="${m.unit}" ${String(m.id) === String(materialId) ? 'selected' : ''}>${m.name}</option>`
@@ -1260,13 +1045,11 @@ function bomRowHtml(materialId = '', qty = 0, unit = '', loss = 0) {
     <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">删除</button></td>
   </tr>`;
 }
-
 function addBomRow() {
-  if (!CACHE.materials.length) { toast('请先添加原材料', 'warn'); return; }
+  if (!CACHE.materials.length) { toast('暂无原材料，请先在采购时录入', 'warn'); return; }
   document.getElementById('bom-tbody').insertAdjacentHTML('beforeend',
     bomRowHtml(CACHE.materials[0].id, 0, CACHE.materials[0].unit, 0));
 }
-
 document.getElementById('bom-tbody')?.addEventListener('change', e => {
   if (e.target.classList.contains('bom-ing')) {
     const tr = e.target.closest('tr');
@@ -1274,7 +1057,6 @@ document.getElementById('bom-tbody')?.addEventListener('change', e => {
     tr.querySelector('.bom-unit').value = opt.dataset.unit || '';
   }
 });
-
 async function saveBom() {
   if (!currentBomDishId) return;
   const rows = [...document.querySelectorAll('#bom-tbody tr')];
@@ -1287,10 +1069,8 @@ async function saveBom() {
     version: 1,
     is_active: true,
   })).filter(it => it.material_id && it.quantity > 0);
-
   if (!items.length) { toast('请至少填写一条有效配方', 'error'); return; }
   try {
-    // 旧版本全部标记为失效
     const all = await apiGet('/api/bom');
     const old = all.filter(b => String(b.dish_id) === String(currentBomDishId));
     for (const b of old) {
@@ -1300,19 +1080,13 @@ async function saveBom() {
         version: b.version, is_active: false,
       });
     }
-    for (const it of items) {
-      await apiPost('/api/bom', it);
-    }
+    for (const it of items) await apiPost('/api/bom', it);
     toast('配方已保存', 'success');
     document.getElementById('bom-card').style.display = 'none';
-  } catch (e) {
-    toast('保存失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('保存失败：' + e.message, 'error'); }
 }
 
-/* ============================
-   8. 销售数据导入
-   ============================ */
+/* ========== 销售导入 ========== */
 async function loadImportBatches() {
   if (!document.getElementById('imp-date').value) {
     document.getElementById('imp-date').value = new Date().toISOString().slice(0, 10);
@@ -1334,11 +1108,8 @@ async function loadImportBatches() {
         <td>${b.unmatched_rows}</td>
         <td><button class="btn btn-danger btn-sm" onclick="delImportBatch(${b.id})">删除</button></td>
       </tr>`).join('');
-  } catch (e) {
-    tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
-  }
+  } catch (e) { tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message); }
 }
-
 async function saveImportBatch() {
   const file = document.getElementById('imp-file').value.trim();
   const date = document.getElementById('imp-date').value;
@@ -1347,36 +1118,24 @@ async function saveImportBatch() {
   if (!date) { toast('请选择销售日期', 'error'); return; }
   try {
     await apiPost('/api/pos-import-batches', {
-      store_id: STORE_ID,
-      file_name: file,
-      import_date: date,
-      status: '已完成',
-      total_rows: total,
-      matched_rows: total,
-      unmatched_rows: 0,
+      store_id: STORE_ID, file_name: file, import_date: date,
+      status: '已完成', total_rows: total, matched_rows: total, unmatched_rows: 0,
     });
     toast('批次已记录', 'success');
     document.getElementById('imp-file').value = '';
     await loadImportBatches();
-  } catch (e) {
-    toast('保存失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('保存失败：' + e.message, 'error'); }
 }
-
 async function delImportBatch(id) {
   if (!confirm('确认删除？')) return;
   try {
     await apiDel(`/api/pos-import-batches/${id}`);
     toast('已删除', 'success');
     await loadImportBatches();
-  } catch (e) {
-    toast('删除失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('删除失败：' + e.message, 'error'); }
 }
 
-/* ============================
-   9. 财务管理
-   ============================ */
+/* ========== 财务 ========== */
 async function loadFinance() {
   if (!document.getElementById('fin-date').value) {
     document.getElementById('fin-date').value = new Date().toISOString().slice(0, 10);
@@ -1398,11 +1157,8 @@ async function loadFinance() {
         <td>${fmt(a.monthly_depreciation)}</td>
         <td><button class="btn btn-danger btn-sm" onclick="delAsset(${a.id})">删除</button></td>
       </tr>`).join('');
-  } catch (e) {
-    tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
-  }
+  } catch (e) { tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message); }
 }
-
 async function saveCost() {
   const d = document.getElementById('fin-date').value;
   if (!d) { toast('请选择日期', 'error'); return; }
@@ -1414,22 +1170,14 @@ async function saveCost() {
   const total = material + labor + rent + utility + other;
   try {
     await apiPost('/api/cost-daily', {
-      store_id: STORE_ID,
-      cost_date: d,
-      material_cost: material,
-      labor_cost: labor,
-      rent_cost: rent,
-      utility_cost: utility,
-      depreciation_cost: 0,
-      other_cost: other,
+      store_id: STORE_ID, cost_date: d,
+      material_cost: material, labor_cost: labor, rent_cost: rent,
+      utility_cost: utility, depreciation_cost: 0, other_cost: other,
       total_cost: total,
     });
     toast(`成本已保存，合计 ${fmt(total)}`, 'success');
-  } catch (e) {
-    toast('保存失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('保存失败：' + e.message, 'error'); }
 }
-
 function openAssetForm() {
   openModal({
     title: '新增固定资产',
@@ -1445,7 +1193,6 @@ function openAssetForm() {
       <button class="btn btn-primary" onclick="saveAsset()">保存</button>`
   });
 }
-
 async function saveAsset() {
   const name = document.getElementById('asset-name').value.trim();
   const value = num(document.getElementById('asset-value').value);
@@ -1457,37 +1204,26 @@ async function saveAsset() {
   const monthly = value * (1 - res) / life;
   try {
     await apiPost('/api/assets', {
-      store_id: STORE_ID,
-      name,
-      purchase_amount: value,
+      store_id: STORE_ID, name, purchase_amount: value,
       purchase_date: new Date().toISOString().slice(0, 10),
-      depreciation_method: '直线法',
-      useful_life_months: life,
-      residual_rate: res,
-      monthly_depreciation: monthly,
+      depreciation_method: '直线法', useful_life_months: life,
+      residual_rate: res, monthly_depreciation: monthly,
     });
     toast('资产已登记', 'success');
     closeModal();
     await loadFinance();
-  } catch (e) {
-    toast('保存失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('保存失败：' + e.message, 'error'); }
 }
-
 async function delAsset(id) {
   if (!confirm('确认删除？')) return;
   try {
     await apiDel(`/api/assets/${id}`);
     toast('已删除', 'success');
     await loadFinance();
-  } catch (e) {
-    toast('删除失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('删除失败：' + e.message, 'error'); }
 }
 
-/* ============================
-   10. 报表（简单聚合）
-   ============================ */
+/* ========== 报表 ========== */
 const REPORT_META = {
   daily:    { title: '进销存日报', head: ['原材料', '当前库存', '成本'] },
   loss:     { title: '损耗分析', head: ['原材料', '账面数量', '实际数量', '差异'] },
@@ -1496,7 +1232,6 @@ const REPORT_META = {
   abc:      { title: 'ABC 分析', head: ['类别', '原材料', '最新单价'] },
   pnl:      { title: '简化损益表', head: ['项目', '金额'] },
 };
-
 async function openReport(key) {
   const meta = REPORT_META[key];
   if (!meta) return;
@@ -1520,29 +1255,21 @@ async function openReport(key) {
       const totalCost = costs.reduce((s, c) => s + num(c.total_cost), 0);
       rows = [['累计成本', fmt(totalCost)]];
     }
-  } catch (e) {
-    rows = [];
-  }
+  } catch (e) { rows = []; }
 
   const body = rows.length
     ? `<table><thead><tr>${meta.head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
        <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`
     : `<table><thead><tr>${meta.head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
        <tbody>${emptyRow(meta.head.length, '📊', '暂无数据')}</tbody></table>`;
-
   openModal({
-    title: meta.title,
-    width: 680,
-    body,
+    title: meta.title, width: 680, body,
     footer: `<button class="btn btn-outline" onclick="closeModal()">关闭</button>`,
   });
 }
 
-/* ============================
-   11. 系统设置 · 用户管理
-   ============================ */
+/* ========== 系统设置 ========== */
 let allUsers = [];
-
 async function loadUsers() {
   const tbody = document.getElementById('user-tbody');
   tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
@@ -1563,11 +1290,8 @@ async function loadUsers() {
           <button class="btn btn-danger btn-sm" onclick="delUser(${u.id})">删除</button>
         </td>
       </tr>`).join('');
-  } catch (e) {
-    tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
-  }
+  } catch (e) { tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message); }
 }
-
 function openUserForm() {
   openModal({
     title: '新增用户',
@@ -1592,7 +1316,6 @@ function openUserForm() {
       <button class="btn btn-primary" onclick="saveUser(null)">保存</button>`
   });
 }
-
 function editUser(id) {
   const u = allUsers.find(x => x.id === id);
   if (!u) return;
@@ -1622,66 +1345,45 @@ function editUser(id) {
       <button class="btn btn-primary" onclick="saveUser(${id})">保存</button>`
   });
 }
-
 async function saveUser(id) {
   const name = document.getElementById('user-name').value.trim();
   if (!name) { toast('请填写姓名', 'error'); return; }
   const payload = {
-    store_id: STORE_ID,
-    name,
+    store_id: STORE_ID, name,
     role: document.getElementById('user-role').value,
     phone: document.getElementById('user-phone').value.trim() || null,
     status: document.getElementById('user-status').value,
   };
   try {
-    if (id) {
-      await apiPut(`/api/users/${id}`, payload);
-      toast('用户已更新', 'success');
-    } else {
-      await apiPost('/api/users', payload);
-      toast('用户已新增', 'success');
-    }
+    if (id) { await apiPut(`/api/users/${id}`, payload); toast('用户已更新', 'success'); }
+    else { await apiPost('/api/users', payload); toast('用户已新增', 'success'); }
     closeModal();
     await loadUsers();
-  } catch (e) {
-    toast('保存失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('保存失败：' + e.message, 'error'); }
 }
-
 async function delUser(id) {
   if (!confirm('确认删除该用户？')) return;
   try {
     await apiDel(`/api/users/${id}`);
     toast('已删除', 'success');
     await loadUsers();
-  } catch (e) {
-    toast('删除失败：' + e.message, 'error');
-  }
+  } catch (e) { toast('删除失败：' + e.message, 'error'); }
 }
 
-/* ============================
-   初始化
-   ============================ */
+/* ========== 初始化 ========== */
 (async function init() {
   const today = new Date().toISOString().slice(0, 10);
   ['po-date', 'si-date', 'imp-date', 'fin-date'].forEach(id => {
     const el = document.getElementById(id);
     if (el && !el.value) el.value = today;
   });
-
   try {
-    // 预加载基础数据到缓存
     CACHE.suppliers = await apiGet('/api/suppliers').catch(() => []);
     CACHE.materials = await apiGet('/api/materials').catch(() => []);
     CACHE.users = await apiGet('/api/users').catch(() => []);
   } catch (e) { console.error(e); }
-
-  // 默认进首页
   await loadDashboard();
 })();
 </script>
 </body>
 </html>
-
-
-
