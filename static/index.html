@@ -5,292 +5,103 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>餐饮进销存管理系统</title>
 <style>
-  :root {
-    --primary: #2F6F4E;
-    --primary-light: #E8F3ED;
-    --accent: #3E7CB1;
-    --bg: #F6F7F9;
-    --card: #FFFFFF;
-    --border: #E5E7EB;
-    --text: #1F2937;
-    --text-muted: #6B7280;
-    --success: #16A34A;
-    --success-bg: #ECFDF5;
-    --warning: #D97706;
-    --warning-bg: #FFFBEB;
-    --danger: #DC2626;
-    --danger-bg: #FEF2F2;
-    --radius: 10px;
-  }
-  * { box-sizing: border-box; margin:0; padding:0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-  }
-  .app { display: flex; min-height: 100vh; }
-
-  /* 侧边栏 */
-  .sidebar {
-    width: 220px;
-    background: #1B2432;
-    color: #CBD5E1;
-    flex-shrink: 0;
-    padding: 20px 0;
-    display: flex;
-    flex-direction: column;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-  }
-  .sidebar .logo {
-    padding: 0 20px 20px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #fff;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    margin-bottom: 10px;
-  }
-  .sidebar .logo span { color: var(--primary); }
-  .nav-item {
-    padding: 12px 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    border-left: 3px solid transparent;
-    transition: all .15s;
-  }
-  .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-  .nav-item.active {
-    background: rgba(47,111,78,0.25);
-    border-left: 3px solid var(--primary);
-    color: #fff;
-    font-weight: 600;
-  }
-  .nav-icon { font-size: 16px; width: 18px; text-align:center; }
-
-  /* 主区域 */
-  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  .topbar {
-    height: 60px;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
-    position: relative;
-    z-index: 500;
-  }
-  .topbar .store-name { font-weight: 600; font-size: 15px; }
-  .topbar .user-box { display:flex; align-items:center; gap:16px; color: var(--text-muted); }
-  .bell { position: relative; cursor:pointer; font-size: 18px; user-select:none; }
-  .bell .dot { position:absolute; top:-2px; right:-2px; width:8px; height:8px; background:var(--danger); border-radius:50%; }
-  .avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--primary); color:#fff; display:flex;
-    align-items:center; justify-content:center; font-size:13px; font-weight:600;
-  }
-  .user-trigger { cursor:pointer; display:flex; align-items:center; gap:8px; }
-
-  .content { padding: 24px; overflow-y: auto; }
-  .page { display: none; }
-  .page.active { display: block; }
-
-  h1.page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-  .page-sub { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
-
-  /* 卡片 */
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-  .card-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px;
-  }
-  .card-header h3 { font-size: 15px; font-weight: 600; }
-
-  /* KPI卡片 */
-  .kpi-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;
-  }
-  .kpi-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 18px 20px;
-  }
-  .kpi-label { color: var(--text-muted); font-size: 12px; margin-bottom: 8px; }
-  .kpi-value { font-size: 24px; font-weight: 700; }
-  .kpi-value.green { color: var(--primary); }
-  .kpi-value.red { color: var(--danger); }
-  .kpi-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-  /* 按钮 */
-  .btn {
-    display: inline-flex; align-items:center; gap:6px;
-    padding: 8px 16px; border-radius: 8px; border: none;
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    transition: all .15s;
-  }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-primary:hover { background: #245B40; }
-  .btn-outline { background: #fff; border: 1px solid var(--border); color: var(--text); }
-  .btn-outline:hover { background: #F3F4F6; }
-  .btn-danger { background: #fff; border: 1px solid var(--danger); color: var(--danger); }
-  .btn-danger:hover { background: var(--danger-bg); }
-  .btn-sm { padding: 5px 10px; font-size: 12px; }
-  .btn-block { width: 100%; justify-content:center; }
-
-  /* 表格 */
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th {
-    text-align: left; padding: 10px 12px; background: #F9FAFB;
-    color: var(--text-muted); font-weight: 600; font-size: 12px;
-    border-bottom: 1px solid var(--border);
-  }
-  tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
-  tbody tr:hover { background: #FAFAFA; }
-  tbody input, tbody select {
-    width: 100%; padding: 6px 8px; border: 1px solid var(--border);
-    border-radius: 6px; font-size: 13px; background:#fff;
-  }
-  tbody input:focus, tbody select:focus { outline:none; border-color: var(--primary); }
-  input[readonly] { background: #F9FAFB; color: var(--text-muted); }
-
-  /* 空状态 */
-  .empty-row td {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 36px 16px !important;
-    font-size: 13px;
-  }
-  .empty-row .e-icon { display:block; font-size:26px; opacity:.35; margin-bottom:6px; filter: grayscale(1); }
-
-  /* 状态标签 */
-  .badge {
-    display: inline-block; padding: 3px 10px; border-radius: 999px;
-    font-size: 12px; font-weight: 600;
-  }
-  .badge-pending { background: var(--warning-bg); color: var(--warning); }
-  .badge-approved { background: var(--success-bg); color: var(--success); }
-  .badge-rejected { background: var(--danger-bg); color: var(--danger); }
-  .badge-warn { background: var(--danger-bg); color: var(--danger); }
-  .badge-ok { background: var(--success-bg); color: var(--success); }
-
-  /* 表单 */
-  .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
-  .form-item label { display:block; font-size:12px; color: var(--text-muted); margin-bottom:6px; }
-  .form-item input, .form-item select {
-    width: 100%; padding: 9px 12px; border: 1px solid var(--border);
-    border-radius: 8px; font-size: 13px; background:#fff;
-  }
-  .form-item input:focus, .form-item select:focus { outline:none; border-color: var(--primary); }
-
-  /* 上传区域 */
-  .upload-zone {
-    border: 2px dashed var(--border); border-radius: var(--radius);
-    padding: 40px; text-align: center; color: var(--text-muted);
-    cursor: pointer; transition: all .15s;
-  }
-  .upload-zone:hover { border-color: var(--primary); background: var(--primary-light); }
-  .upload-zone .icon { font-size: 32px; margin-bottom: 8px; }
-
-  /* 提示条 */
-  .alert {
-    padding: 12px 16px; border-radius: 8px; font-size: 13px;
-    margin-bottom: 16px; display:flex; align-items:center; gap:8px;
-  }
-  .alert-warn { background: var(--warning-bg); color: var(--warning); }
-  .alert-danger { background: var(--danger-bg); color: var(--danger); }
-  .alert-success { background: var(--success-bg); color: var(--success); }
-
-  .toolbar { display:flex; justify-content: space-between; align-items:center; margin-bottom: 16px; gap:12px; flex-wrap:wrap; }
-  .report-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; }
-  .report-card {
-    background: var(--card); border:1px solid var(--border); border-radius: var(--radius);
-    padding: 20px; cursor:pointer; transition: all .15s;
-  }
-  .report-card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.06); transform: translateY(-2px); }
-  .report-card .r-icon { font-size:22px; margin-bottom:10px; }
-  .report-card .r-title { font-weight:600; margin-bottom:4px; }
-  .report-card .r-desc { font-size:12px; color: var(--text-muted); }
-
-  .text-muted { color: var(--text-muted); }
-  .mt-8 { margin-top: 8px; } .mt-16 { margin-top:16px; } .mb-0 { margin-bottom:0; }
-  .flex { display:flex; } .gap-8 { gap:8px; } .items-center { align-items:center; }
-
-  /* ===== Toast ===== */
-  .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display:flex; flex-direction:column; gap:10px; }
-  .toast {
-    background:#1F2937; color:#fff; padding:12px 18px; border-radius:8px;
-    font-size:13px; box-shadow:0 4px 16px rgba(0,0,0,0.18);
-    animation: slideIn .2s ease; display:flex; align-items:center; gap:8px;
-    max-width:360px; transition: opacity .3s;
-  }
-  .toast.success { background:#16A34A; }
-  .toast.error { background:#DC2626; }
-  .toast.warn { background:#D97706; }
-  @keyframes slideIn { from { opacity:0; transform: translateX(24px); } to { opacity:1; transform:none; } }
-
-  /* ===== Modal ===== */
-  .modal-mask {
-    position: fixed; inset:0; background: rgba(15,23,42,0.5);
-    z-index: 9000; display:flex; align-items:center; justify-content:center; padding: 20px;
-  }
-  .modal {
-    background:#fff; border-radius:12px; width:100%; max-width:560px;
-    max-height: 86vh; display:flex; flex-direction:column; overflow:hidden;
-    animation: pop .18s ease;
-  }
-  @keyframes pop { from { opacity:0; transform: scale(.96);} to {opacity:1; transform:none;} }
-  .modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
-  .modal-header h3 { font-size: 16px; }
-  .modal-close { background:none; border:none; font-size:22px; line-height:1; color:var(--text-muted); cursor:pointer; }
-  .modal-close:hover { color: var(--text); }
-  .modal-body { padding: 20px 22px; overflow-y:auto; }
-  .modal-footer { padding: 14px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
-
-  /* ===== Dropdown ===== */
-  .dropdown {
-    position:absolute; top:54px; right:24px; background:#fff;
-    border:1px solid var(--border); border-radius:10px;
-    box-shadow:0 8px 24px rgba(0,0,0,0.10); width:310px; z-index:800;
-    overflow:hidden; display:none;
-  }
-  .dropdown.show { display:block; }
-  .dropdown-title { padding:12px 16px; font-size:13px; font-weight:700; border-bottom:1px solid var(--border); background:#F9FAFB; }
-  .dropdown-item { padding:12px 16px; border-bottom:1px solid var(--border); font-size:13px; cursor:pointer; }
-  .dropdown-item:last-child { border-bottom:none; }
-  .dropdown-item:hover { background:#F9FAFB; }
-  .dropdown-item .di-title { font-weight:600; margin-bottom:2px; }
-  .dropdown-item .di-sub { font-size:12px; color: var(--text-muted); }
-  .dropdown-empty {
-    padding: 28px 16px; text-align:center; color: var(--text-muted); font-size:13px;
-  }
-  .dropdown-empty .de-icon { display:block; font-size:22px; opacity:.35; margin-bottom:6px; filter: grayscale(1); }
-
-  @media (max-width: 900px) {
-    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    .form-grid { grid-template-columns: 1fr; }
-    .report-grid { grid-template-columns: 1fr; }
-  }
+  :root{--primary:#2F6F4E;--primary-light:#E8F3ED;--bg:#F6F7F9;--card:#FFF;--border:#E5E7EB;--text:#1F2937;--text-muted:#6B7280;--success:#16A34A;--success-bg:#ECFDF5;--warning:#D97706;--warning-bg:#FFFBEB;--danger:#DC2626;--danger-bg:#FEF2F2;--radius:10px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:220px;background:#1B2432;color:#CBD5E1;flex-shrink:0;padding:20px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .sidebar .logo{padding:0 20px 20px;font-size:18px;font-weight:700;color:#fff;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:10px}
+  .sidebar .logo span{color:var(--primary)}
+  .nav-item{padding:12px 20px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:14px;border-left:3px solid transparent;transition:all .15s}
+  .nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
+  .nav-item.active{background:rgba(47,111,78,.25);border-left:3px solid var(--primary);color:#fff;font-weight:600}
+  .nav-icon{font-size:16px;width:18px;text-align:center}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:relative;z-index:500}
+  .topbar .store-name{font-weight:600;font-size:15px}
+  .user-box{display:flex;align-items:center;gap:16px;color:var(--text-muted)}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+  .content{padding:24px;overflow-y:auto}
+  .page{display:none}.page.active{display:block}
+  h1.page-title{font-size:20px;font-weight:700;margin-bottom:4px}
+  .page-sub{color:var(--text-muted);font-size:13px;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+  .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .card-header h3{font-size:15px;font-weight:600}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+  .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+  .kpi-label{color:var(--text-muted);font-size:12px;margin-bottom:8px}
+  .kpi-value{font-size:24px;font-weight:700}
+  .kpi-value.green{color:var(--primary)}
+  .kpi-value.red{color:var(--danger)}
+  .kpi-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:#245B40}
+  .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+  .btn-outline:hover{background:#F3F4F6}
+  .btn-danger{background:#fff;border:1px solid var(--danger);color:var(--danger)}
+  .btn-danger:hover{background:var(--danger-bg)}
+  .btn-sm{padding:5px 10px;font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{text-align:left;padding:10px 12px;background:#F9FAFB;color:var(--text-muted);font-weight:600;font-size:12px;border-bottom:1px solid var(--border)}
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--border)}
+  tbody tr:hover{background:#FAFAFA}
+  tbody input,tbody select{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
+  tbody input:focus,tbody select:focus{outline:none;border-color:var(--primary)}
+  input[readonly]{background:#F9FAFB;color:var(--text-muted)}
+  .empty-row td{text-align:center;color:var(--text-muted);padding:36px 16px!important;font-size:13px}
+  .empty-row .e-icon{display:block;font-size:26px;opacity:.35;margin-bottom:6px;filter:grayscale(1)}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .badge-pending{background:var(--warning-bg);color:var(--warning)}
+  .badge-approved{background:var(--success-bg);color:var(--success)}
+  .badge-rejected{background:var(--danger-bg);color:var(--danger)}
+  .badge-warn{background:var(--danger-bg);color:var(--danger)}
+  .badge-ok{background:var(--success-bg);color:var(--success)}
+  .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+  .form-item label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px}
+  .form-item input,.form-item select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff}
+  .form-item input:focus,.form-item select:focus{outline:none;border-color:var(--primary)}
+  .upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px;text-align:center;color:var(--text-muted);cursor:pointer;transition:all .15s}
+  .upload-zone:hover{border-color:var(--primary);background:var(--primary-light)}
+  .upload-zone .icon{font-size:32px;margin-bottom:8px}
+  .alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .alert-warn{background:var(--warning-bg);color:var(--warning)}
+  .alert-danger{background:var(--danger-bg);color:var(--danger)}
+  .alert-success{background:var(--success-bg);color:var(--success)}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+  .report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .report-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;transition:all .15s}
+  .report-card:hover{border-color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.06);transform:translateY(-2px)}
+  .report-card .r-icon{font-size:22px;margin-bottom:10px}
+  .report-card .r-title{font-weight:600;margin-bottom:4px}
+  .report-card .r-desc{font-size:12px;color:var(--text-muted)}
+  .text-muted{color:var(--text-muted)}
+  .mt-16{margin-top:16px}
+  .flex{display:flex}.gap-8{gap:8px}
+  .toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+  .toast{background:#1F2937;color:#fff;padding:12px 18px;border-radius:8px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.18);animation:slideIn .2s ease;max-width:360px;transition:opacity .3s}
+  .toast.success{background:#16A34A}.toast.error{background:#DC2626}.toast.warn{background:#D97706}
+  @keyframes slideIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+  .modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px}
+  .modal{background:#fff;border-radius:12px;width:100%;max-width:560px;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;animation:pop .18s ease}
+  @keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+  .modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .modal-header h3{font-size:16px}
+  .modal-close{background:none;border:none;font-size:22px;line-height:1;color:var(--text-muted);cursor:pointer}
+  .modal-body{padding:20px 22px;overflow-y:auto}
+  .modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+  .loading{text-align:center;padding:30px;color:var(--text-muted);font-size:13px}
+  @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.report-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="app">
-
-  <!-- 侧边栏 -->
   <aside class="sidebar">
     <div class="logo">🍚 <span>味佳</span>进销存</div>
     <div class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span>首页看板</div>
     <div class="nav-item" data-page="suppliers"><span class="nav-icon">🏭</span>供应商管理</div>
+    <div class="nav-item" data-page="materials"><span class="nav-icon">🥬</span>原材料管理</div>
     <div class="nav-item" data-page="purchase"><span class="nav-icon">📝</span>采购管理</div>
     <div class="nav-item" data-page="stockin"><span class="nav-icon">📦</span>入库管理</div>
     <div class="nav-item" data-page="inventory"><span class="nav-icon">🗄️</span>库存管理</div>
@@ -304,413 +115,234 @@
   <div class="main">
     <div class="topbar">
       <div class="store-name">王记炒饭旗舰店</div>
-      <div class="user-box">
-        <div class="bell" onclick="toggleDropdown('notifDropdown', event)">🔔</div>
-        <div class="user-trigger" onclick="toggleDropdown('userDropdown', event)">
-          <div class="avatar">张</div>
-          <span>张店长</span>
-        </div>
-      </div>
-
-      <!-- 通知下拉 -->
-      <div class="dropdown" id="notifDropdown">
-        <div class="dropdown-title">通知中心</div>
-        <div class="dropdown-empty">
-          <span class="de-icon">🔕</span>
-          暂无新通知
-        </div>
-      </div>
-
-      <!-- 用户下拉 -->
-      <div class="dropdown" id="userDropdown" style="width:220px;">
-        <div class="dropdown-title">张店长 · 店长</div>
-        <div class="dropdown-item" onclick="toast('个人资料功能演示','success');closeDropdowns()">👤 个人资料</div>
-        <div class="dropdown-item" onclick="gotoPage('settings');closeDropdowns()">⚙️ 系统设置</div>
-        <div class="dropdown-item" onclick="toast('已安全退出（演示）','success');closeDropdowns()">🚪 退出登录</div>
-      </div>
+      <div class="user-box"><div class="avatar">张</div><span>张店长</span></div>
     </div>
 
     <div class="content">
-
-<!-- ========== 首页看板 ========== -->
       <div class="page active" id="page-dashboard">
         <h1 class="page-title">首页看板</h1>
-        <p class="page-sub">系统尚未产生业务数据，完成首次采购入库后即可查看经营概况</p>
-
+        <p class="page-sub">实时经营概况</p>
         <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-label">昨日营收</div>
-            <div class="kpi-value">¥0.00</div>
-            <div class="kpi-sub">0 笔订单</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">昨日成本</div>
-            <div class="kpi-value">¥0.00</div>
-            <div class="kpi-sub">原材料占比 —</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">税前利润</div>
-            <div class="kpi-value">¥0.00</div>
-            <div class="kpi-sub">利润率 —</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">库存预警</div>
-            <div class="kpi-value">0项</div>
-            <div class="kpi-sub">低于安全库存</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h3>待办事项</h3>
-          </div>
-          <table>
-            <thead><tr><th>类型</th><th>单据编号</th><th>提交人</th><th>提交时间</th><th>操作</th></tr></thead>
-            <tbody id="todo-tbody">
-              <tr class="empty-row"><td colspan="5"><span class="e-icon">📭</span>暂无待办事项</td></tr>
-            </tbody>
-          </table>
+          <div class="kpi-card"><div class="kpi-label">供应商数</div><div class="kpi-value green" id="kpi-suppliers">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">原材料数</div><div class="kpi-value green" id="kpi-materials">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">菜品数</div><div class="kpi-value green" id="kpi-dishes">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">库存项数</div><div class="kpi-value" id="kpi-inventory">—</div></div>
         </div>
       </div>
 
-      <!-- ========== 供应商管理 ========== -->
       <div class="page" id="page-suppliers">
         <h1 class="page-title">供应商管理</h1>
-        <p class="page-sub">维护供货商基本信息，采购单需关联供应商</p>
-
+        <p class="page-sub">维护供货商基本信息</p>
         <div class="card">
           <div class="toolbar">
             <input type="text" id="supplier-search" placeholder="搜索供应商名称/联系人" style="width:260px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;">
             <button class="btn btn-primary" onclick="openSupplierForm()">＋ 新增供应商</button>
           </div>
           <table>
-            <thead><tr><th>供应商名称</th><th>联系人</th><th>电话</th><th>地址</th><th>合作状态</th><th>操作</th></tr></thead>
-            <tbody id="supplier-tbody">
-              <tr class="empty-row"><td colspan="6"><span class="e-icon">🏭</span>暂无供应商，请点击右上角新增</td></tr>
-            </tbody>
+            <thead><tr><th>供应商名称</th><th>联系人</th><th>电话</th><th>地址</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="supplier-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- ========== 采购管理 ========== -->
-      <div class="page" id="page-purchase">
-        <h1 class="page-title">采购申请单</h1>
-        <p class="page-sub">关联供应商与采购人，明细支持增删行，提交后需经理审批</p>
+      <div class="page" id="page-materials">
+        <h1 class="page-title">原材料管理</h1>
+        <p class="page-sub">维护原材料主数据与安全库存</p>
+        <div class="card">
+          <div class="toolbar">
+            <input type="text" id="material-search" placeholder="搜索原材料名称" style="width:260px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;">
+            <button class="btn btn-primary" onclick="openMaterialForm()">＋ 新增原材料</button>
+          </div>
+          <table>
+            <thead><tr><th>名称</th><th>分类</th><th>单位</th><th>规格</th><th>安全库存</th><th>最新单价</th><th>操作</th></tr></thead>
+            <tbody id="material-tbody"></tbody>
+          </table>
+        </div>
+      </div>
 
+      <div class="page" id="page-purchase">
+        <h1 class="page-title">采购管理</h1>
+        <p class="page-sub">提交后需经理审批</p>
         <div class="card">
           <div class="form-grid">
-            <div class="form-item">
-              <label>供应商 <span style="color:var(--danger)">*</span></label>
-              <select id="po-supplier">
-                <option value="">请选择供应商</option>
-              </select>
-            </div>
-            <div class="form-item">
-              <label>采购人 <span style="color:var(--danger)">*</span></label>
-              <select id="po-buyer">
-                <option value="">请选择采购人</option>
-              </select>
-            </div>
-            <div class="form-item">
-              <label>期望到货日期</label>
-              <input type="date" id="po-date">
-            </div>
+            <div class="form-item"><label>供应商 *</label><select id="po-supplier"><option value="">请选择</option></select></div>
+            <div class="form-item"><label>采购人 *</label><select id="po-buyer"><option value="">请选择</option></select></div>
+            <div class="form-item"><label>期望到货日期</label><input type="date" id="po-date"></div>
           </div>
-
           <div class="card-header">
             <h3>采购明细</h3>
             <button class="btn btn-outline btn-sm" onclick="addPurchaseRow()">＋ 增加一行</button>
           </div>
-          <table id="purchase-table">
-            <thead>
-              <tr><th style="width:22%">原材料</th><th style="width:12%">数量</th><th style="width:12%">单位</th><th style="width:15%">预估单价</th><th style="width:15%">预估金额</th><th style="width:16%">备注</th><th style="width:8%">操作</th></tr>
-            </thead>
-            <tbody id="purchase-tbody">
-              <tr class="empty-row"><td colspan="7"><span class="e-icon">📝</span>暂无采购明细，请点击“＋ 增加一行”开始填写</td></tr>
-            </tbody>
+          <table>
+            <thead><tr><th style="width:22%">原材料</th><th style="width:14%">数量</th><th style="width:12%">单位</th><th style="width:16%">预估单价</th><th style="width:16%">金额</th><th style="width:12%">操作</th></tr></thead>
+            <tbody id="purchase-tbody"></tbody>
           </table>
-
-          <div class="flex" style="justify-content:flex-end;gap:12px;margin-top:16px;">
-            <div style="text-align:right;color:var(--text-muted);font-size:13px;">
-              采购单预估总金额：<span id="po-total" style="font-size:18px;font-weight:700;color:var(--text);">¥0.00</span>
-            </div>
+          <div class="flex" style="justify-content:flex-end;margin-top:16px;">
+            <div style="text-align:right;color:var(--text-muted);font-size:13px;">总金额：<span id="po-total" style="font-size:18px;font-weight:700;color:var(--text);">¥0.00</span></div>
           </div>
           <div class="flex" style="justify-content:flex-end;gap:10px;margin-top:16px;">
-            <button class="btn btn-outline" onclick="savePurchaseDraft()">存为草稿</button>
-            <button class="btn btn-primary" onclick="submitPurchase()">提交经理审批</button>
+            <button class="btn btn-primary" onclick="submitPurchase()">提交审批</button>
           </div>
         </div>
-
         <div class="card">
           <div class="card-header"><h3>采购单列表</h3></div>
           <table>
-            <thead><tr><th>采购单号</th><th>供应商</th><th>采购人</th><th>金额</th><th>状态</th><th>提交时间</th><th>操作</th></tr></thead>
-            <tbody id="po-list-tbody">
-              <tr class="empty-row"><td colspan="7"><span class="e-icon">📄</span>暂无采购单</td></tr>
-            </tbody>
+            <thead><tr><th>采购单号</th><th>供应商</th><th>采购人</th><th>金额</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="po-list-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- ========== 入库管理 ========== -->
       <div class="page" id="page-stockin">
-        <h1 class="page-title">入库单</h1>
-        <p class="page-sub">必须关联已审批通过的采购单，可核对实际到货并修改数量/单价，提交后需经理审批，审批通过后才计入库存</p>
-
+        <h1 class="page-title">入库管理</h1>
+        <p class="page-sub">关联已审批的采购单，审批通过后计入库存</p>
         <div class="card">
           <div class="form-grid">
-            <div class="form-item">
-              <label>关联采购单 <span style="color:var(--danger)">*</span></label>
-              <select id="si-po-select" onchange="loadPOItems()">
-                <option value="">请选择已审批的采购单</option>
-              </select>
-            </div>
-            <div class="form-item">
-              <label>入库仓库</label>
-              <select id="si-warehouse"><option>一号食材库</option></select>
-            </div>
-            <div class="form-item">
-              <label>实际到货日期</label>
-              <input type="date" id="si-date">
-            </div>
+            <div class="form-item"><label>关联采购单 *</label><select id="si-po-select" onchange="loadPOItems()"><option value="">请选择</option></select></div>
+            <div class="form-item"><label>入库仓库</label><select id="si-warehouse"><option>一号食材库</option></select></div>
+            <div class="form-item"><label>实际到货日期</label><input type="date" id="si-date"></div>
           </div>
-
-          <div class="alert alert-warn">
-            ⚠️ 请核对以下实际到货数量与单价，如与采购单不一致，系统将自动生成"采购与入库差异表"
-          </div>
-
-          <div class="card-header"><h3>入库明细（可编辑，来源于采购单）</h3></div>
+          <div class="card-header"><h3>入库明细</h3></div>
           <table>
-            <thead>
-              <tr><th>原材料</th><th>采购数量</th><th>实际入库数量</th><th>采购单价</th><th>实际单价</th><th>批次号</th><th>生产日期</th><th>过期日期</th></tr>
-            </thead>
-            <tbody id="stockin-tbody">
-              <tr class="empty-row"><td colspan="8"><span class="e-icon">📦</span>请先选择关联的采购单</td></tr>
-            </tbody>
+            <thead><tr><th>原材料</th><th>采购数量</th><th>实际入库</th><th>采购单价</th><th>实际单价</th><th>批次号</th></tr></thead>
+            <tbody id="stockin-tbody"></tbody>
           </table>
-
           <div class="flex" style="justify-content:flex-end;gap:10px;margin-top:16px;">
-            <button class="btn btn-outline" onclick="toast('入库单草稿已保存','success')">保存草稿</button>
-            <button class="btn btn-primary" onclick="submitStockIn()">提交经理审批</button>
+            <button class="btn btn-primary" onclick="submitStockIn()">提交审批</button>
           </div>
         </div>
-
-        <div class="card" id="diff-card" style="display:none;">
-          <div class="card-header"><h3>采购与实际入库差异表（自动生成）</h3></div>
-          <table>
-            <thead><tr><th>原材料</th><th>采购数量</th><th>实际数量</th><th>数量差异</th><th>采购单价</th><th>实际单价</th><th>差异原因</th></tr></thead>
-            <tbody id="diff-tbody"></tbody>
-          </table>
-        </div>
-
         <div class="card">
           <div class="card-header"><h3>入库单列表</h3></div>
           <table>
-            <thead><tr><th>入库单号</th><th>关联采购单</th><th>入库仓库</th><th>状态</th><th>提交时间</th><th>操作</th></tr></thead>
-            <tbody id="si-list-tbody">
-              <tr class="empty-row"><td colspan="6"><span class="e-icon">📥</span>暂无入库单</td></tr>
-            </tbody>
+            <thead><tr><th>入库单号</th><th>关联采购单</th><th>仓库</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="si-list-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- ========== 库存管理 ========== -->
       <div class="page" id="page-inventory">
         <h1 class="page-title">实时库存</h1>
-        <p class="page-sub">按仓库/物料查看当前库存，红色标记为低于安全库存或临期</p>
-
+        <p class="page-sub">当前各仓库原材料库存</p>
         <div class="toolbar">
           <input type="text" id="inventory-search" placeholder="搜索原材料名称" style="width:240px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;">
-          <div class="flex gap-8">
-            <button class="btn btn-outline" onclick="openStocktake()">📋 发起盘点</button>
-            <button class="btn btn-outline" onclick="openLossOut()">📤 报损/领用出库</button>
-          </div>
         </div>
-
         <div class="card">
           <table>
-            <thead><tr><th>原材料</th><th>仓库</th><th>当前库存</th><th>安全库存</th><th>加权平均成本</th><th>最近效期</th><th>状态</th></tr></thead>
+            <thead><tr><th>原材料</th><th>仓库ID</th><th>当前库存</th><th>加权平均成本</th><th>更新时间</th></tr></thead>
             <tbody id="inventory-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- ========== 菜品与配方(BOM)管理 ========== -->
       <div class="page" id="page-dishes">
-        <h1 class="page-title">菜品与配方（BOM）</h1>
-        <p class="page-sub">维护菜品基础信息及对应POS编码，并配置每道菜的原材料用量，作为销售自动扣库存的依据</p>
-
+        <h1 class="page-title">菜品与配方</h1>
+        <p class="page-sub">维护菜品及 BOM 配方</p>
         <div class="card">
           <div class="toolbar">
             <input type="text" id="dish-search" placeholder="搜索菜品名称/POS编码" style="width:260px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;">
             <button class="btn btn-primary" onclick="toggleDishForm(true)">＋ 新增菜品</button>
           </div>
           <table>
-            <thead><tr><th>菜品名称</th><th>分类</th><th>售价</th><th>POS编码</th><th>配方状态</th><th>状态</th><th>操作</th></tr></thead>
-            <tbody id="dish-tbody">
-              <tr class="empty-row"><td colspan="7"><span class="e-icon">🍽️</span>暂无菜品，请点击右上角新增</td></tr>
-            </tbody>
+            <thead><tr><th>菜品名称</th><th>售价</th><th>POS编码</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="dish-tbody"></tbody>
           </table>
         </div>
-
-        <!-- 新增菜品表单 -->
         <div class="card" id="dish-form-card" style="display:none;">
           <div class="card-header"><h3>新增菜品</h3></div>
           <div class="form-grid">
-            <div class="form-item"><label>菜品名称 <span style="color:var(--danger)">*</span></label><input type="text" id="new-dish-name" placeholder="如：蛋炒饭"></div>
-            <div class="form-item"><label>所属分类</label><select id="new-dish-cat"><option>主食</option><option>汤类</option><option>凉菜</option></select></div>
-            <div class="form-item"><label>销售单价 <span style="color:var(--danger)">*</span></label><input type="number" id="new-dish-price" placeholder="0.00"></div>
-            <div class="form-item"><label>POS商品编码 <span style="color:var(--danger)">*</span></label><input type="text" id="new-dish-code" placeholder="需与收银系统一致，用于导入匹配"></div>
-            <div class="form-item"><label>菜品状态</label><select id="new-dish-status"><option>在售</option><option>下架</option></select></div>
+            <div class="form-item"><label>菜品名称 *</label><input type="text" id="new-dish-name"></div>
+            <div class="form-item"><label>销售单价 *</label><input type="number" id="new-dish-price" step="0.01"></div>
+            <div class="form-item"><label>POS编码 *</label><input type="text" id="new-dish-code"></div>
           </div>
           <div class="flex" style="justify-content:flex-end;gap:10px;">
             <button class="btn btn-outline" onclick="toggleDishForm(false)">取消</button>
-            <button class="btn btn-primary" onclick="saveDish()">保存并配置配方</button>
+            <button class="btn btn-primary" onclick="saveDish()">保存</button>
           </div>
         </div>
-
-        <!-- 配方(BOM)编辑区 -->
         <div class="card" id="bom-card" style="display:none;">
-          <div class="card-header">
-            <h3>配方明细 —— <span id="bom-dish-name"></span></h3>
+          <div class="card-header"><h3>配方明细 —— <span id="bom-dish-name"></span></h3>
             <button class="btn btn-outline btn-sm" onclick="addBomRow()">＋ 增加一行</button>
           </div>
-          <div class="alert alert-warn">
-            ⚠️ 用量需填写"单份标准用量"，损耗率用于抵消切配/烹饪过程中的正常损耗，销售自动扣库存时会按"用量×销售份数×(1+损耗率)"计算
-          </div>
           <table>
-            <thead>
-              <tr><th style="width:22%">原材料</th><th style="width:16%">单份用量</th><th style="width:14%">单位</th><th style="width:14%">损耗率(%)</th><th style="width:26%">备注</th><th style="width:8%">操作</th></tr>
-            </thead>
+            <thead><tr><th>原材料</th><th>单份用量</th><th>单位</th><th>损耗率(%)</th><th>操作</th></tr></thead>
             <tbody id="bom-tbody"></tbody>
           </table>
           <div class="flex" style="justify-content:flex-end;gap:10px;margin-top:16px;">
             <button class="btn btn-outline" onclick="document.getElementById('bom-card').style.display='none'">取消</button>
-            <button class="btn btn-primary" onclick="saveBom()">保存配方（生成新版本）</button>
+            <button class="btn btn-primary" onclick="saveBom()">保存配方</button>
           </div>
         </div>
       </div>
 
-      <!-- ========== 销售数据导入 ========== -->
       <div class="page" id="page-salesimport">
-        <h1 class="page-title">POS销售数据导入</h1>
-        <p class="page-sub">上传收银系统导出的销售文件，系统自动匹配菜品并按配方扣减库存</p>
-
-        <div class="card" id="upload-card">
-          <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-            <div class="icon">📁</div>
-            <div>点击或拖拽文件到此处上传</div>
-            <div style="font-size:12px;margin-top:6px;">支持 .csv / .xlsx 格式，单文件不超过10MB</div>
-            <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFileSelect(this)">
+        <h1 class="page-title">销售数据导入</h1>
+        <p class="page-sub">记录 POS 导入批次</p>
+        <div class="card">
+          <div class="card-header"><h3>新增导入批次</h3></div>
+          <div class="form-grid">
+            <div class="form-item"><label>文件名 *</label><input type="text" id="imp-file" placeholder="POS_20260924.csv"></div>
+            <div class="form-item"><label>销售日期 *</label><input type="date" id="imp-date"></div>
+            <div class="form-item"><label>总行数</label><input type="number" id="imp-total" value="0"></div>
+          </div>
+          <div class="flex" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="saveImportBatch()">记录批次</button>
           </div>
         </div>
-
-        <!-- 预览区 -->
-        <div class="card" id="preview-card" style="display:none;">
-          <div class="alert alert-danger" id="duplicate-alert" style="display:none;">
-            ⛔ 检测到该文件与已导入批次内容高度重复，请勿重复上传同一天数据。如需重新导入，请先在下方"导入记录"中撤销原批次。
-          </div>
-          <div class="card-header">
-            <h3>数据预览</h3>
-            <span class="text-muted" style="font-size:13px;" id="preview-file-info"></span>
-          </div>
-          <table>
-            <thead><tr><th>订单号</th><th>商品编码</th><th>商品名称</th><th>数量</th><th>金额</th><th>匹配结果</th></tr></thead>
-            <tbody id="preview-tbody"></tbody>
-          </table>
-          <div class="alert alert-warn mt-16">
-            ⚠️ 未能自动匹配的记录，上传后可在"待人工核对"列表中手动建立映射关系，不影响其余数据导入。
-          </div>
-          <div class="flex" style="justify-content:flex-end;gap:10px;margin-top:16px;">
-            <button class="btn btn-outline" onclick="cancelUpload()">取消</button>
-            <button class="btn btn-primary" onclick="confirmUpload()">确认上传</button>
-          </div>
-        </div>
-
         <div class="card">
           <div class="card-header"><h3>导入记录</h3></div>
           <table>
-            <thead><tr><th>文件名</th><th>销售日期</th><th>总行数</th><th>已匹配</th><th>未匹配</th><th>状态</th><th>操作</th></tr></thead>
-            <tbody id="import-list-tbody">
-              <tr class="empty-row"><td colspan="7"><span class="e-icon">📥</span>暂无导入记录</td></tr>
-            </tbody>
+            <thead><tr><th>文件名</th><th>销售日期</th><th>总行数</th><th>已匹配</th><th>未匹配</th><th>操作</th></tr></thead>
+            <tbody id="import-list-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- ========== 财务管理 ========== -->
       <div class="page" id="page-finance">
         <h1 class="page-title">财务管理</h1>
-        <p class="page-sub">每日成本、利润自动核算，人工成本/水电/其他费用需手工补录</p>
-
+        <p class="page-sub">每日成本与固定资产</p>
         <div class="card">
-          <div class="card-header">
-            <h3>成本录入</h3>
-            <span class="badge badge-pending">待录入</span>
-          </div>
+          <div class="card-header"><h3>录入每日成本</h3></div>
           <div class="form-grid">
-            <div class="form-item"><label>原材料成本（系统自动）</label><input type="text" id="fin-food" value="0.00" readonly></div>
-            <div class="form-item"><label>人工成本（需录入）</label><input type="number" id="fin-labor" value="0.00" step="0.01"></div>
-            <div class="form-item"><label>房租摊销（系统自动）</label><input type="text" id="fin-rent" value="0.00" readonly></div>
-            <div class="form-item"><label>折旧摊销（系统自动）</label><input type="text" id="fin-dep" value="0.00" readonly></div>
-            <div class="form-item"><label>水电费（需录入）</label><input type="number" id="fin-utility" value="0.00" step="0.01"></div>
-            <div class="form-item"><label>其他费用（需录入）</label><input type="number" id="fin-other" value="0.00" step="0.01"></div>
+            <div class="form-item"><label>日期 *</label><input type="date" id="fin-date"></div>
+            <div class="form-item"><label>原材料成本</label><input type="number" id="fin-material" value="0" step="0.01"></div>
+            <div class="form-item"><label>人工成本</label><input type="number" id="fin-labor" value="0" step="0.01"></div>
+            <div class="form-item"><label>房租</label><input type="number" id="fin-rent" value="0" step="0.01"></div>
+            <div class="form-item"><label>水电</label><input type="number" id="fin-utility" value="0" step="0.01"></div>
+            <div class="form-item"><label>其他</label><input type="number" id="fin-other" value="0" step="0.01"></div>
           </div>
-          <button class="btn btn-primary" onclick="recalcFinance()">保存并重新核算</button>
+          <button class="btn btn-primary" onclick="saveCost()">保存成本</button>
         </div>
-
-        <div class="kpi-grid">
-          <div class="kpi-card"><div class="kpi-label">当日营收</div><div class="kpi-value" id="fin-revenue-kpi">¥0.00</div></div>
-          <div class="kpi-card"><div class="kpi-label">当日总成本</div><div class="kpi-value" id="fin-cost-kpi">¥0.00</div></div>
-          <div class="kpi-card"><div class="kpi-label">毛利</div><div class="kpi-value" id="fin-gross-kpi">¥0.00</div></div>
-          <div class="kpi-card"><div class="kpi-label">税前利润</div><div class="kpi-value" id="fin-pretax-kpi">¥0.00</div></div>
-        </div>
-
         <div class="card">
-          <div class="card-header"><h3>固定资产/折旧</h3><button class="btn btn-outline btn-sm" onclick="openAssetForm()">＋ 新增资产</button></div>
+          <div class="card-header"><h3>固定资产</h3><button class="btn btn-outline btn-sm" onclick="openAssetForm()">＋ 新增资产</button></div>
           <table>
-            <thead><tr><th>资产名称</th><th>购置原值</th><th>折旧方法</th><th>使用寿命</th><th>月折旧额</th></tr></thead>
-            <tbody id="asset-tbody">
-              <tr class="empty-row"><td colspan="5"><span class="e-icon">🏗️</span>暂无固定资产记录</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><h3>税务汇总</h3></div>
-          <div class="alert alert-warn">⚠️ 系统计算结果仅供内部参考，正式申报请以税务机关及专业会计核算为准</div>
-          <table>
-            <thead><tr><th>周期</th><th>应纳税所得额</th><th>适用税率</th><th>应缴税额（估算）</th></tr></thead>
-            <tbody>
-              <tr><td>本年度累计</td><td id="tax-base">¥0.00</td><td>1%</td><td id="tax-amount">¥0.00</td></tr>
-            </tbody>
+            <thead><tr><th>资产名称</th><th>购置原值</th><th>折旧方法</th><th>使用寿命</th><th>月折旧额</th><th>操作</th></tr></thead>
+            <tbody id="asset-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- ========== 报表中心 ========== -->
       <div class="page" id="page-reports">
         <h1 class="page-title">报表中心</h1>
-        <p class="page-sub">进销存日报、损耗分析、毛利分析等统计报表</p>
+        <p class="page-sub">数据统计报表</p>
         <div class="report-grid">
-          <div class="report-card" onclick="openReport('daily')"><div class="r-icon">📦</div><div class="r-title">进销存日报</div><div class="r-desc">期初、入库、出库、期末库存汇总</div></div>
-          <div class="report-card" onclick="openReport('loss')"><div class="r-icon">📉</div><div class="r-title">损耗分析</div><div class="r-desc">理论消耗 vs 实际盘点差异</div></div>
-          <div class="report-card" onclick="openReport('gross')"><div class="r-icon">💹</div><div class="r-title">毛利分析</div><div class="r-desc">按菜品/分类统计毛利率</div></div>
-          <div class="report-card" onclick="openReport('supplier')"><div class="r-icon">🏭</div><div class="r-title">供应商采购排行</div><div class="r-desc">按金额/频次统计供应商</div></div>
-          <div class="report-card" onclick="openReport('abc')"><div class="r-icon">📊</div><div class="r-title">ABC分析</div><div class="r-desc">高销量/高成本物料排序</div></div>
-          <div class="report-card" onclick="openReport('pnl')"><div class="r-icon">📄</div><div class="r-title">简化损益表</div><div class="r-desc">收入、成本、利润月度趋势</div></div>
+          <div class="report-card" onclick="openReport('daily')"><div class="r-icon">📦</div><div class="r-title">进销存日报</div><div class="r-desc">期初、入库、出库、期末</div></div>
+          <div class="report-card" onclick="openReport('loss')"><div class="r-icon">📉</div><div class="r-title">损耗分析</div><div class="r-desc">理论 vs 实际差异</div></div>
+          <div class="report-card" onclick="openReport('gross')"><div class="r-icon">💹</div><div class="r-title">毛利分析</div><div class="r-desc">按菜品统计毛利率</div></div>
+          <div class="report-card" onclick="openReport('supplier')"><div class="r-icon">🏭</div><div class="r-title">供应商采购排行</div><div class="r-desc">按金额统计</div></div>
+          <div class="report-card" onclick="openReport('abc')"><div class="r-icon">📊</div><div class="r-title">ABC分析</div><div class="r-desc">物料成本排序</div></div>
+          <div class="report-card" onclick="openReport('pnl')"><div class="r-icon">📄</div><div class="r-title">简化损益表</div><div class="r-desc">收入成本利润趋势</div></div>
         </div>
       </div>
 
-      <!-- ========== 系统设置 ========== -->
       <div class="page" id="page-settings">
         <h1 class="page-title">系统设置</h1>
-        <p class="page-sub">用户权限、POS对接模板、税务参数等基础配置</p>
-        <div class="report-grid">
-          <div class="report-card" onclick="openSetting('user')"><div class="r-icon">👥</div><div class="r-title">用户与权限</div><div class="r-desc">管理角色权限：老板/店长/收银/库管/财务</div></div>
-          <div class="report-card" onclick="openSetting('pos')"><div class="r-icon">🔗</div><div class="r-title">POS对接模板</div><div class="r-desc">配置不同收银系统的字段映射规则</div></div>
-          <div class="report-card" onclick="openSetting('store')"><div class="r-icon">🏪</div><div class="r-title">门店/仓库</div><div class="r-desc">多门店、多仓库基础信息维护</div></div>
-          <div class="report-card" onclick="openSetting('tax')"><div class="r-icon">🧾</div><div class="r-title">税务参数</div><div class="r-desc">配置纳税人类型与适用税率</div></div>
+        <p class="page-sub">用户与权限管理</p>
+        <div class="card">
+          <div class="card-header"><h3>用户列表</h3><button class="btn btn-primary btn-sm" onclick="openUserForm()">＋ 新增用户</button></div>
+          <table>
+            <thead><tr><th>姓名</th><th>角色</th><th>电话</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="user-tbody"></tbody>
+          </table>
         </div>
       </div>
 
@@ -719,45 +351,42 @@
 </div>
 
 <script>
-/* =========================================================
- *  全局基础工具
- * ========================================================= */
+/* ============================
+   全局配置与工具
+   ============================ */
+const API_BASE = "";       // 同域，留空
+const STORE_ID = 1;        // 默认门店 ID
 
-// ---------- 原材料主数据字典（系统基础字典，非业务数据） ----------
-const INGREDIENTS = {
-  '大米':   { unit: 'kg', price: 0.00 },
-  '鸡蛋':   { unit: '个', price: 0.00 },
-  '香葱':   { unit: 'kg', price: 0.00 },
-  '食用油': { unit: 'L',  price: 0.00 },
-  '盐':     { unit: 'kg', price: 0.00 },
-  '生抽':   { unit: 'L',  price: 0.00 },
-  '番茄':   { unit: 'kg', price: 0.00 },
-  '猪肉':   { unit: 'kg', price: 0.00 }
+const CACHE = {
+  suppliers: [], users: [], materials: [], warehouses: [],
+  categories: [], dishes: [], bom: [], inventory: [],
+  purchaseOrders: [], stockIn: [], posBatches: [], assets: []
 };
-const ING_NAMES = Object.keys(INGREDIENTS);
 
-// ---------- 业务数据（空壳：全部为空） ----------
-let STOCK = [];                 // 实时库存
-const PO_DB = {};               // 采购单主数据（供入库单带出明细）
-const BOM_DB = {};              // 菜品配方
-const importedBatches = [];     // 已导入批次
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`HTTP ${res.status}: ${txt.slice(0, 200)}`);
+  }
+  if (res.status === 204) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+const apiGet = (p) => api('GET', p);
+const apiPost = (p, b) => api('POST', p, b);
+const apiPut = (p, b) => api('PUT', p, b);
+const apiDel = (p) => api('DELETE', p);
 
-// 单据编号计数器
-let poSeq = 1, siSeq = 1, impSeq = 1;
-
-// 业务常量
-const DAILY_REVENUE = 0.00;
-
-// ---------- 金额格式化 ----------
 function fmt(n) { return '¥' + Number(n || 0).toFixed(2); }
 function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
-// ---------- 空状态行 ----------
 function emptyRow(colspan, icon, text) {
   return `<tr class="empty-row"><td colspan="${colspan}"><span class="e-icon">${icon}</span>${text}</td></tr>`;
 }
 
-// ---------- Toast ----------
 function toast(msg, type = '', duration = 2600) {
   let c = document.querySelector('.toast-container');
   if (!c) { c = document.createElement('div'); c.className = 'toast-container'; document.body.appendChild(c); }
@@ -768,18 +397,13 @@ function toast(msg, type = '', duration = 2600) {
   setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, duration);
 }
 
-// ---------- Modal ----------
 function openModal(opts) {
   closeModal();
   const mask = document.createElement('div');
-  mask.className = 'modal-mask';
-  mask.id = 'globalModal';
+  mask.className = 'modal-mask'; mask.id = 'globalModal';
   mask.innerHTML = `
     <div class="modal" style="max-width:${opts.width || 560}px">
-      <div class="modal-header">
-        <h3>${opts.title || ''}</h3>
-        <button class="modal-close" onclick="closeModal()">×</button>
-      </div>
+      <div class="modal-header"><h3>${opts.title || ''}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
       <div class="modal-body">${opts.body || ''}</div>
       ${opts.footer ? `<div class="modal-footer">${opts.footer}</div>` : ''}
     </div>`;
@@ -788,940 +412,1022 @@ function openModal(opts) {
   if (typeof opts.onOpen === 'function') opts.onOpen(mask);
 }
 function closeModal() { const m = document.getElementById('globalModal'); if (m) m.remove(); }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeDropdowns(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-// ---------- Dropdown ----------
-function toggleDropdown(id, e) {
-  if (e) e.stopPropagation();
-  const el = document.getElementById(id);
-  const isOpen = el.classList.contains('show');
-  closeDropdowns();
-  if (!isOpen) el.classList.add('show');
-}
-function closeDropdowns() {
-  document.querySelectorAll('.dropdown.show').forEach(d => d.classList.remove('show'));
-}
-document.addEventListener('click', () => closeDropdowns());
-document.querySelectorAll('.dropdown').forEach(d => d.addEventListener('click', e => e.stopPropagation()));
-
-// ---------- 页面切换 ----------
 function gotoPage(page) {
   document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.page === page));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const el = document.getElementById('page-' + page);
   if (el) el.classList.add('active');
   document.querySelector('.content').scrollTop = 0;
-  closeDropdowns();
+  const loader = PAGE_LOADERS[page];
+  if (loader) loader();
 }
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => gotoPage(item.dataset.page));
 });
 
-/* =========================================================
- *  1. 供应商管理
- * ========================================================= */
-const supplierSearch = document.getElementById('supplier-search');
-if (supplierSearch) {
-  supplierSearch.addEventListener('input', function () {
-    const kw = this.value.trim().toLowerCase();
-    document.querySelectorAll('#supplier-tbody tr:not(.empty-row)').forEach(tr => {
-      tr.style.display = tr.textContent.toLowerCase().includes(kw) ? '' : 'none';
-    });
-  });
+const PAGE_LOADERS = {
+  dashboard: loadDashboard,
+  suppliers: loadSuppliers,
+  materials: loadMaterials,
+  purchase: loadPurchaseOrders,
+  stockin: loadStockInList,
+  inventory: loadInventory,
+  dishes: loadDishes,
+  salesimport: loadImportBatches,
+  finance: loadFinance,
+  settings: loadUsers,
+};
+
+/* ============================
+   1. 首页看板
+   ============================ */
+async function loadDashboard() {
+  try {
+    const [s, m, d, inv] = await Promise.all([
+      apiGet('/api/suppliers').catch(() => []),
+      apiGet('/api/materials').catch(() => []),
+      apiGet('/api/dishes').catch(() => []),
+      apiGet('/api/inventory').catch(() => []),
+    ]);
+    document.getElementById('kpi-suppliers').textContent = s.length;
+    document.getElementById('kpi-materials').textContent = m.length;
+    document.getElementById('kpi-dishes').textContent = d.length;
+    document.getElementById('kpi-inventory').textContent = inv.length;
+  } catch (e) { console.error(e); }
 }
+
+/* ============================
+   2. 供应商
+   ============================ */
+let editingSupplierId = null;
+let allSuppliers = [];
+
+async function loadSuppliers() {
+  const tbody = document.getElementById('supplier-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+  try {
+    allSuppliers = await apiGet('/api/suppliers');
+    CACHE.suppliers = allSuppliers;
+    if (!allSuppliers.length) {
+      tbody.innerHTML = emptyRow(6, '🏭', '暂无供应商');
+      return;
+    }
+    renderSuppliers(allSuppliers);
+  } catch (e) {
+    tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
+  }
+}
+
+function renderSuppliers(list) {
+  const tbody = document.getElementById('supplier-tbody');
+  if (!list.length) { tbody.innerHTML = emptyRow(6, '🏭', '暂无匹配供应商'); return; }
+  tbody.innerHTML = list.map(s => `
+    <tr>
+      <td>${s.name}</td>
+      <td>${s.contact || '—'}</td>
+      <td>${s.phone || '—'}</td>
+      <td>${s.address || '—'}</td>
+      <td><span class="badge ${s.status === 'active' ? 'badge-ok' : 'badge-warn'}">${s.status === 'active' ? '合作中' : '已停止'}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editSupplier(${s.id})">编辑</button>
+        <button class="btn btn-danger btn-sm" onclick="delSupplier(${s.id})">删除</button>
+      </td>
+    </tr>`).join('');
+}
+
+document.getElementById('supplier-search')?.addEventListener('input', function () {
+  const kw = this.value.trim().toLowerCase();
+  renderSuppliers(allSuppliers.filter(s =>
+    (s.name || '').toLowerCase().includes(kw) || (s.contact || '').toLowerCase().includes(kw)
+  ));
+});
 
 function openSupplierForm(btn) {
-  const isEdit = !!btn;
-  const tr = isEdit ? btn.closest('tr') : null;
-  const d = tr ? {
-    name: tr.cells[0].innerText, contact: tr.cells[1].innerText,
-    phone: tr.cells[2].innerText, addr: tr.cells[3].innerText
-  } : { name:'', contact:'', phone:'', addr:'' };
-
+  editingSupplierId = null;
   openModal({
-    title: isEdit ? '编辑供应商' : '新增供应商',
+    title: '新增供应商',
     body: `
       <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="form-item"><label>供应商名称 *</label><input id="sup-name" value="${d.name}"></div>
-        <div class="form-item"><label>联系人</label><input id="sup-contact" value="${d.contact}"></div>
-        <div class="form-item"><label>联系电话</label><input id="sup-phone" value="${d.phone}"></div>
+        <div class="form-item"><label>供应商名称 *</label><input id="sup-name"></div>
+        <div class="form-item"><label>联系人</label><input id="sup-contact"></div>
+        <div class="form-item"><label>联系电话</label><input id
+        <div class="form-item"><label>联系电话</label><input id="sup-phone"></div>
         <div class="form-item"><label>合作状态</label>
-          <select id="sup-status"><option>合作中</option><option>已停止合作</option></select>
+          <select id="sup-status"><option value="active">合作中</option><option value="inactive">已停止合作</option></select>
         </div>
       </div>
-      <div class="form-item"><label>地址</label><input id="sup-addr" value="${d.addr}"></div>`,
+      <div class="form-item"><label>地址</label><input id="sup-addr"></div>`,
     footer: `
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveSupplier(${isEdit ? 'true' : 'false'})">保存</button>`
+      <button class="btn btn-primary" onclick="saveSupplier(false)">保存</button>`
   });
 }
 
-function saveSupplier(isEdit) {
+function editSupplier(id) {
+  const s = allSuppliers.find(x => x.id === id);
+  if (!s) return;
+  editingSupplierId = id;
+  openModal({
+    title: '编辑供应商',
+    body: `
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="form-item"><label>供应商名称 *</label><input id="sup-name" value="${s.name || ''}"></div>
+        <div class="form-item"><label>联系人</label><input id="sup-contact" value="${s.contact || ''}"></div>
+        <div class="form-item"><label>联系电话</label><input id="sup-phone" value="${s.phone || ''}"></div>
+        <div class="form-item"><label>合作状态</label>
+          <select id="sup-status">
+            <option value="active" ${s.status === 'active' ? 'selected' : ''}>合作中</option>
+            <option value="inactive" ${s.status !== 'active' ? 'selected' : ''}>已停止合作</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-item"><label>地址</label><input id="sup-addr" value="${s.address || ''}"></div>`,
+    footer: `
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveSupplier(true)">保存</button>`
+  });
+}
+
+async function saveSupplier(isEdit) {
   const name = document.getElementById('sup-name').value.trim();
   if (!name) { toast('请填写供应商名称', 'error'); return; }
-  const contact = document.getElementById('sup-contact').value.trim() || '—';
-  const phone = document.getElementById('sup-phone').value.trim() || '—';
-  const addr = document.getElementById('sup-addr').value.trim() || '—';
-  const status = document.getElementById('sup-status').value;
-
-  const tbody = document.getElementById('supplier-tbody');
-  const badge = status === '合作中' ? 'badge-ok' : 'badge-warn';
-
-  // 移除空状态行
-  tbody.querySelectorAll('.empty-row').forEach(r => r.remove());
-
-  let target = null;
-  if (isEdit) {
-    target = [...tbody.querySelectorAll('tr')].find(tr => tr.cells[0].innerText === name);
+  const payload = {
+    store_id: STORE_ID,
+    name,
+    contact: document.getElementById('sup-contact').value.trim() || null,
+    phone: document.getElementById('sup-phone').value.trim() || null,
+    address: document.getElementById('sup-addr').value.trim() || null,
+    status: document.getElementById('sup-status').value,
+  };
+  try {
+    if (isEdit && editingSupplierId) {
+      await apiPut(`/api/suppliers/${editingSupplierId}`, payload);
+      toast('供应商已更新', 'success');
+    } else {
+      await apiPost('/api/suppliers', payload);
+      toast('供应商已新增', 'success');
+    }
+    closeModal();
+    await loadSuppliers();
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
   }
-
-  if (target) {
-    target.cells[0].innerText = name;
-    target.cells[1].innerText = contact;
-    target.cells[2].innerText = phone;
-    target.cells[3].innerText = addr;
-    target.cells[4].innerHTML = `<span class="badge ${badge}">${status}</span>`;
-    toast('供应商已更新', 'success');
-  } else {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${name}</td><td>${contact}</td><td>${phone}</td><td>${addr}</td>
-      <td><span class="badge ${badge}">${status}</span></td>
-      <td><button class="btn btn-outline btn-sm" onclick="openSupplierForm(this)">编辑</button></td>`;
-    tbody.appendChild(tr);
-    toast('供应商已新增', 'success');
-
-    // 同步到采购单下拉
-    const sel = document.getElementById('po-supplier');
-    const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
-    sel.appendChild(opt);
-  }
-  closeModal();
 }
 
-/* =========================================================
- *  2. 采购管理
- * ========================================================= */
-function ingOptions(selected) {
-  return ING_NAMES.map(n => `<option ${n === selected ? 'selected' : ''}>${n}</option>`).join('');
+async function delSupplier(id) {
+  if (!confirm('确认删除该供应商？此操作不可恢复。')) return;
+  try {
+    await apiDel(`/api/suppliers/${id}`);
+    toast('已删除', 'success');
+    await loadSuppliers();
+  } catch (e) {
+    toast('删除失败：' + e.message, 'error');
+  }
 }
 
-function buildPurchaseRow(ing = ING_NAMES[0], qty = 0, price = null, remark = '') {
-  const meta = INGREDIENTS[ing] || { unit: 'kg', price: 0 };
-  const p = price === null ? meta.price : price;
+/* ============================
+   3. 原材料
+   ============================ */
+let allMaterials = [];
+let editingMaterialId = null;
+
+async function loadMaterials() {
+  const tbody = document.getElementById('material-tbody');
+  tbody.innerHTML = '<tr><td colspan="7" class="loading">加载中...</td></tr>';
+  try {
+    allMaterials = await apiGet('/api/materials');
+    CACHE.materials = allMaterials;
+    if (!allMaterials.length) {
+      tbody.innerHTML = emptyRow(7, '🥬', '暂无原材料');
+      return;
+    }
+    renderMaterials(allMaterials);
+  } catch (e) {
+    tbody.innerHTML = emptyRow(7, '⚠️', '加载失败：' + e.message);
+  }
+}
+
+function renderMaterials(list) {
+  const tbody = document.getElementById('material-tbody');
+  if (!list.length) { tbody.innerHTML = emptyRow(7, '🥬', '暂无匹配原材料'); return; }
+  tbody.innerHTML = list.map(m => `
+    <tr>
+      <td>${m.name}</td>
+      <td>${m.category_id || '—'}</td>
+      <td>${m.unit || '—'}</td>
+      <td>${m.spec || '—'}</td>
+      <td>${m.safety_stock || 0}</td>
+      <td>${fmt(m.latest_purchase_price)}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editMaterial(${m.id})">编辑</button>
+        <button class="btn btn-danger btn-sm" onclick="delMaterial(${m.id})">删除</button>
+      </td>
+    </tr>`).join('');
+}
+
+document.getElementById('material-search')?.addEventListener('input', function () {
+  const kw = this.value.trim().toLowerCase();
+  renderMaterials(allMaterials.filter(m => (m.name || '').toLowerCase().includes(kw)));
+});
+
+function openMaterialForm() {
+  editingMaterialId = null;
+  openModal({
+    title: '新增原材料',
+    body: `
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="form-item"><label>名称 *</label><input id="mat-name"></div>
+        <div class="form-item"><label>单位 *</label><input id="mat-unit" value="kg"></div>
+        <div class="form-item"><label>规格</label><input id="mat-spec"></div>
+        <div class="form-item"><label>安全库存</label><input type="number" id="mat-safe" value="0" step="0.01"></div>
+        <div class="form-item"><label>最新单价</label><input type="number" id="mat-price" value="0" step="0.01"></div>
+        <div class="form-item"><label>保质期(天)</label><input type="number" id="mat-shelf" value="0"></div>
+      </div>`,
+    footer: `
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveMaterial(false)">保存</button>`
+  });
+}
+
+function editMaterial(id) {
+  const m = allMaterials.find(x => x.id === id);
+  if (!m) return;
+  editingMaterialId = id;
+  openModal({
+    title: '编辑原材料',
+    body: `
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="form-item"><label>名称 *</label><input id="mat-name" value="${m.name || ''}"></div>
+        <div class="form-item"><label>单位 *</label><input id="mat-unit" value="${m.unit || 'kg'}"></div>
+        <div class="form-item"><label>规格</label><input id="mat-spec" value="${m.spec || ''}"></div>
+        <div class="form-item"><label>安全库存</label><input type="number" id="mat-safe" value="${m.safety_stock || 0}" step="0.01"></div>
+        <div class="form-item"><label>最新单价</label><input type="number" id="mat-price" value="${m.latest_purchase_price || 0}" step="0.01"></div>
+        <div class="form-item"><label>保质期(天)</label><input type="number" id="mat-shelf" value="${m.shelf_life_days || 0}"></div>
+      </div>`,
+    footer: `
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveMaterial(true)">保存</button>`
+  });
+}
+
+async function saveMaterial(isEdit) {
+  const name = document.getElementById('mat-name').value.trim();
+  const unit = document.getElementById('mat-unit').value.trim();
+  if (!name) { toast('请填写名称', 'error'); return; }
+  if (!unit) { toast('请填写单位', 'error'); return; }
+  const payload = {
+    store_id: STORE_ID,
+    name, unit,
+    spec: document.getElementById('mat-spec').value.trim() || null,
+    safety_stock: num(document.getElementById('mat-safe').value),
+    latest_purchase_price: num(document.getElementById('mat-price').value),
+    shelf_life_days: parseInt(document.getElementById('mat-shelf').value) || 0,
+  };
+  try {
+    if (isEdit && editingMaterialId) {
+      await apiPut(`/api/materials/${editingMaterialId}`, payload);
+      toast('原材料已更新', 'success');
+    } else {
+      await apiPost('/api/materials', payload);
+      toast('原材料已新增', 'success');
+    }
+    closeModal();
+    await loadMaterials();
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
+  }
+}
+
+async function delMaterial(id) {
+  if (!confirm('确认删除该原材料？')) return;
+  try {
+    await apiDel(`/api/materials/${id}`);
+    toast('已删除', 'success');
+    await loadMaterials();
+  } catch (e) {
+    toast('删除失败：' + e.message, 'error');
+  }
+}
+
+/* ============================
+   4. 采购管理
+   ============================ */
+let allPurchaseOrders = [];
+
+async function loadPurchaseOrders() {
+  // 加载下拉框数据
+  try {
+    const [sups, users, mats] = await Promise.all([
+      apiGet('/api/suppliers').catch(() => []),
+      apiGet('/api/users').catch(() => []),
+      apiGet('/api/materials').catch(() => []),
+    ]);
+    const supSel = document.getElementById('po-supplier');
+    supSel.innerHTML = '<option value="">请选择供应商</option>' +
+      sups.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+    const buyerSel = document.getElementById('po-buyer');
+    buyerSel.innerHTML = '<option value="">请选择采购人</option>' +
+      users.map(u => `<option value="${u.id}">${u.name}（${u.role}）</option>`).join('');
+
+    CACHE.materials = mats;
+    if (!document.getElementById('po-date').value) {
+      document.getElementById('po-date').value = new Date().toISOString().slice(0, 10);
+    }
+  } catch (e) { console.error(e); }
+
+  // 加载采购单列表
+  const tbody = document.getElementById('po-list-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+  try {
+    allPurchaseOrders = await apiGet('/api/purchase-orders');
+    if (!allPurchaseOrders.length) {
+      tbody.innerHTML = emptyRow(6, '📄', '暂无采购单');
+      return;
+    }
+    renderPurchaseOrders(allPurchaseOrders);
+  } catch (e) {
+    tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
+  }
+
+  // 入库下拉框同步
+  const siSel = document.getElementById('si-po-select');
+  if (siSel) {
+    siSel.innerHTML = '<option value="">请选择已审批的采购单</option>' +
+      allPurchaseOrders.filter(p => p.status === 'approved' || p.status === 'pending')
+        .map(p => `<option value="${p.id}">${p.order_no}</option>`).join('');
+  }
+}
+
+function renderPurchaseOrders(list) {
+  const tbody = document.getElementById('po-list-tbody');
+  if (!list.length) { tbody.innerHTML = emptyRow(6, '📄', '暂无采购单'); return; }
+  tbody.innerHTML = list.map(p => {
+    const sup = CACHE.suppliers.find(s => s.id === p.supplier_id);
+    const badge = p.status === 'approved' ? 'badge-approved' :
+                  p.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+    const label = p.status === 'approved' ? '已审批' :
+                  p.status === 'rejected' ? '已驳回' : '待审批';
+    return `<tr>
+      <td>${p.order_no}</td>
+      <td>${sup ? sup.name : p.supplier_id}</td>
+      <td>${p.created_by || '—'}</td>
+      <td>—</td>
+      <td><span class="badge ${badge}">${label}</span></td>
+      <td>
+        ${p.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approvePO(${p.id})">审批</button>` : ''}
+        <button class="btn btn-danger btn-sm" onclick="delPurchase(${p.id})">删除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function purchaseRowHtml(ing = '', qty = 0, price = 0) {
+  const matOpts = CACHE.materials.map(m =>
+    `<option value="${m.id}" data-unit="${m.unit}" data-price="${m.latest_purchase_price || 0}" ${String(m.id) === String(ing) ? 'selected' : ''}>${m.name}</option>`
+  ).join('');
   return `<tr>
-    <td><select class="po-ing">${ingOptions(ing)}</select></td>
-    <td><input type="number" class="po-qty" value="${qty}" min="0" step="0.01"></td>
-    <td><input type="text" class="po-unit" value="${meta.unit}" readonly></td>
-    <td><input type="number" class="po-price" value="${Number(p).toFixed(2)}" min="0" step="0.01"></td>
-    <td><input type="text" class="po-amount" value="${(qty * p).toFixed(2)}" readonly></td>
-    <td><input type="text" class="po-remark" value="${remark}" placeholder="备注"></td>
+    <td><select class="po-ing">${matOpts}</select></td>
+    <td><input type="number" class="po-qty" value="${qty}" step="0.01"></td>
+    <td><input type="text" class="po-unit" value="" readonly></td>
+    <td><input type="number" class="po-price" value="${price}" step="0.01"></td>
+    <td><input type="text" class="po-amount" value="0.00" readonly></td>
     <td><button class="btn btn-danger btn-sm" onclick="removePurchaseRow(this)">删除</button></td>
   </tr>`;
 }
 
-function initPurchaseTable() {
+function addPurchaseRow() {
   const tbody = document.getElementById('purchase-tbody');
-  tbody.innerHTML = emptyRow(7, '📝', '暂无采购明细，请点击“＋ 增加一行”开始填写');
+  if (!CACHE.materials.length) {
+    toast('请先添加原材料', 'warn');
+    return;
+  }
+  tbody.querySelectorAll('.empty-row').forEach(r => r.remove());
+  tbody.insertAdjacentHTML('beforeend', purchaseRowHtml(CACHE.materials[0].id));
+  syncPurchaseRow(tbody.lastElementChild);
   recalcPurchase();
-  tbody.addEventListener('input', onPurchaseChange);
-  tbody.addEventListener('change', onPurchaseChange);
 }
 
-function onPurchaseChange(e) {
-  const tr = e.target.closest('tr');
-  if (!tr || tr.classList.contains('empty-row')) return;
-  if (e.target.classList.contains('po-ing')) {
-    const meta = INGREDIENTS[e.target.value];
-    if (meta) {
-      tr.querySelector('.po-unit').value = meta.unit;
-      tr.querySelector('.po-price').value = Number(meta.price).toFixed(2);
+function syncPurchaseRow(tr) {
+  const sel = tr.querySelector('.po-ing');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt) {
+    tr.querySelector('.po-unit').value = opt.dataset.unit || '';
+    const p = opt.dataset.price || 0;
+    if (num(tr.querySelector('.po-price').value) === 0) {
+      tr.querySelector('.po-price').value = p;
     }
   }
   const qty = num(tr.querySelector('.po-qty').value);
   const price = num(tr.querySelector('.po-price').value);
   tr.querySelector('.po-amount').value = (qty * price).toFixed(2);
+}
+
+function removePurchaseRow(btn) {
+  const tr = btn.closest('tr');
+  tr.remove();
   recalcPurchase();
 }
 
 function recalcPurchase() {
   let total = 0;
-  document.querySelectorAll('#purchase-tbody tr:not(.empty-row)').forEach(tr => {
-    total += num(tr.querySelector('.po-amount')?.value);
+  document.querySelectorAll('#purchase-tbody tr').forEach(tr => {
+    const a = num(tr.querySelector('.po-amount')?.value);
+    total += a;
   });
-  document.getElementById('po-total').innerText = fmt(total);
-  return total;
+  document.getElementById('po-total').textContent = fmt(total);
 }
 
-function addPurchaseRow() {
-  const tbody = document.getElementById('purchase-tbody');
-  tbody.querySelectorAll('.empty-row').forEach(r => r.remove());
-  tbody.insertAdjacentHTML('beforeend', buildPurchaseRow(ING_NAMES[0], 0, null));
-  recalcPurchase();
-}
-
-function removePurchaseRow(btn) {
-  const tbody = document.getElementById('purchase-tbody');
-  const rows = tbody.querySelectorAll('tr:not(.empty-row)');
-  if (rows.length <= 1) {
-    toast('采购单至少需保留一行明细', 'warn');
-    return;
-  }
-  btn.closest('tr').remove();
-  if (!tbody.querySelectorAll('tr:not(.empty-row)').length) {
-    tbody.innerHTML = emptyRow(7, '📝', '暂无采购明细，请点击“＋ 增加一行”开始填写');
-  }
-  recalcPurchase();
-}
-
-function collectPurchaseItems() {
-  const items = [];
-  document.querySelectorAll('#purchase-tbody tr:not(.empty-row)').forEach(tr => {
-    const ing = tr.querySelector('.po-ing').value;
+document.getElementById('purchase-tbody')?.addEventListener('input', e => {
+  const tr = e.target.closest('tr');
+  if (!tr) return;
+  if (e.target.classList.contains('po-ing')) syncPurchaseRow(tr);
+  else {
     const qty = num(tr.querySelector('.po-qty').value);
     const price = num(tr.querySelector('.po-price').value);
-    if (qty > 0) items.push({ ing, qty, price, unit: INGREDIENTS[ing]?.unit || '' });
-  });
-  return items;
-}
-
-function savePurchaseDraft() {
-  const items = collectPurchaseItems();
-  if (!items.length) { toast('请至少填写一条有效采购明细', 'error'); return; }
-  toast('采购单草稿已保存（未提交审批）', 'success');
-}
-
-function submitPurchase() {
-  const supplier = document.getElementById('po-supplier').value;
-  const buyer = document.getElementById('po-buyer').value;
-  if (!supplier) { toast('请选择供应商', 'error'); return; }
-  if (!buyer) { toast('请选择采购人', 'error'); return; }
-  const items = collectPurchaseItems();
-  if (!items.length) { toast('请至少填写一条有效采购明细', 'error'); return; }
-  const total = recalcPurchase();
-
-  const no = 'PO' + new Date().toISOString().slice(0,10).replace(/-/g,'') + String(poSeq++).padStart(3, '0');
-  const now = new Date();
-  const time = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-  PO_DB[no] = { supplier, items };
-
-  const tbody = document.getElementById('po-list-tbody');
-  tbody.querySelectorAll('.empty-row').forEach(r => r.remove());
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${no}</td><td>${supplier}</td><td>${buyer}</td><td>${fmt(total)}</td>
-    <td><span class="badge badge-pending">待审批</span></td>
-    <td>${time}</td>
-    <td><button class="btn btn-primary btn-sm" onclick="approvePO(this)">审批</button></td>`;
-  tbody.prepend(tr);
-
-  // 同步到入库单下拉
-  const sel = document.getElementById('si-po-select');
-  const opt = document.createElement('option');
-  opt.value = no;
-  opt.textContent = `${no} · ${supplier} · ${fmt(total)}`;
-  sel.appendChild(opt);
-
-  // 清空明细行
-  const ptbody = document.getElementById('purchase-tbody');
-  ptbody.innerHTML = emptyRow(7, '📝', '暂无采购明细，请点击“＋ 增加一行”开始填写');
+    tr.querySelector('.po-amount').value = (qty * price).toFixed(2);
+  }
   recalcPurchase();
+});
 
-  toast(`采购单 ${no} 已提交经理审批`, 'success');
-}
-
-function approvePO(btn) {
-  const tr = btn.closest('tr');
-  const no = tr.cells[0].innerText;
-  const supplier = tr.cells[1].innerText;
-
-  openModal({
-    title: `审批采购单 ${no}`,
-    body: `
-      <div class="alert alert-warn">请确认采购明细无误后通过审批，通过后即可创建入库单。</div>
-      <table>
-        <thead><tr><th>供应商</th><th>采购人</th><th>金额</th><th>提交时间</th></tr></thead>
-        <tbody><tr>
-          <td>${supplier}</td><td>${tr.cells[2].innerText}</td>
-          <td>${tr.cells[3].innerText}</td><td>${tr.cells[5].innerText}</td>
-        </tr></tbody>
-      </table>`,
-    footer: `
-      <button class="btn btn-danger" onclick="finishApprovePO('${no}', 'rejected')">驳回</button>
-      <button class="btn btn-primary" onclick="finishApprovePO('${no}', 'approved')">通过审批</button>`
-  });
-}
-
-function finishApprovePO(no, result) {
-  const tr = [...document.querySelectorAll('#po-list-tbody tr')].find(r => r.cells[0].innerText === no);
-  if (tr) {
-    if (result === 'approved') {
-      tr.cells[4].innerHTML = '<span class="badge badge-approved">已审批</span>';
-      tr.cells[6].innerHTML = '<button class="btn btn-outline btn-sm" onclick="viewPO(this)">查看</button>';
-      toast(`采购单 ${no} 已通过审批`, 'success');
-    } else {
-      tr.cells[4].innerHTML = '<span class="badge badge-rejected">已驳回</span>';
-      tr.cells[6].innerHTML = '<button class="btn btn-outline btn-sm" onclick="viewPO(this)">查看</button>';
-      toast(`采购单 ${no} 已驳回`, 'error');
-    }
+document.getElementById('purchase-tbody')?.addEventListener('change', e => {
+  if (e.target.classList.contains('po-ing')) {
+    const tr = e.target.closest('tr');
+    syncPurchaseRow(tr);
+    recalcPurchase();
   }
-  closeModal();
-}
+});
 
-function viewPO(btn) {
-  const tr = btn.closest('tr');
-  const no = tr.cells[0].innerText;
-  const data = PO_DB[no];
-  let rows = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">暂无明细数据</td></tr>';
-  if (data) {
-    rows = data.items.map(it => `<tr>
-      <td>${it.ing}</td>
-      <td>${it.qty} ${INGREDIENTS[it.ing]?.unit || ''}</td>
-      <td>${fmt(it.price)}</td>
-    </tr>`).join('');
-  }
-  openModal({
-    title: `采购单详情 ${no}`,
-    body: `
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-        <div><label class="text-muted" style="font-size:12px;">供应商</label><div style="font-weight:600;margin-top:4px;">${tr.cells[1].innerText}</div></div>
-        <div><label class="text-muted" style="font-size:12px;">采购人</label><div style="font-weight:600;margin-top:4px;">${tr.cells[2].innerText}</div></div>
-        <div><label class="text-muted" style="font-size:12px;">金额</label><div style="font-weight:600;margin-top:4px;">${tr.cells[3].innerText}</div></div>
-        <div><label class="text-muted" style="font-size:12px;">状态</label><div style="margin-top:4px;">${tr.cells[4].innerHTML}</div></div>
-      </div>
-      <table>
-        <thead><tr><th>原材料</th><th>数量</th><th>单价</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`,
-    footer: `<button class="btn btn-outline" onclick="closeModal()">关闭</button>`
-  });
-}
+async function submitPurchase() {
+  const supplierId = document.getElementById('po-supplier').value;
+  const buyerId = document.getElementById('po-buyer').value;
+  if (!supplierId) { toast('请选择供应商', 'error'); return; }
+  if (!buyerId) { toast('请选择采购人', 'error'); return; }
 
-/* =========================================================
- *  3. 入库管理
- * ========================================================= */
-function loadPOItems() {
-  const no = document.getElementById('si-po-select').value;
-  const tbody = document.getElementById('stockin-tbody');
-  const diffCard = document.getElementById('diff-card');
+  const rows = [...document.querySelectorAll('#purchase-tbody tr')];
+  const items = rows.map(tr => ({
+    material_id: parseInt(tr.querySelector('.po-ing').value),
+    quantity: num(tr.querySelector('.po-qty').value),
+    unit_price: num(tr.querySelector('.po-price').value),
+  })).filter(it => it.material_id && it.quantity > 0);
 
-  if (!no || !PO_DB[no]) {
-    tbody.innerHTML = emptyRow(8, '📦', '请先选择关联的采购单');
-    diffCard.style.display = 'none';
-    return;
-  }
+  if (!items.length) { toast('请填写至少一条采购明细', 'error'); return; }
 
-  const today = new Date().toISOString().slice(0, 10);
-  const expire = new Date(Date.now() + 365 * 864e5).toISOString().slice(0, 10);
-  const batchSeq = Date.now().toString().slice(-6);
-
-  tbody.innerHTML = PO_DB[no].items.map((it, i) => `
-    <tr class="si-row"
-        data-ing="${it.ing}"
-        data-po-qty="${it.qty}"
-        data-po-price="${it.price}">
-      <td>${it.ing}</td>
-      <td>${it.qty} ${INGREDIENTS[it.ing]?.unit || ''}</td>
-      <td><input type="number" class="si-qty" value="${it.qty}" step="0.01"></td>
-      <td>${fmt(it.price)}</td>
-      <td><input type="number" class="si-price" value="${it.price.toFixed(2)}" step="0.01"></td>
-      <td><input type="text" class="si-batch" value="BN${today.replace(/-/g, '')}${batchSeq}${i + 1}"></td>
-      <td><input type="date" class="si-prod" value="${today}"></td>
-      <td><input type="date" class="si-exp" value="${expire}"></td>
-    </tr>`).join('');
-
-  tbody.querySelectorAll('.si-qty, .si-price').forEach(inp => {
-    inp.addEventListener('input', renderStockInDiff);
-  });
-
-  renderStockInDiff();
-}
-
-function renderStockInDiff() {
-  const rows = [...document.querySelectorAll('#stockin-tbody .si-row')];
-  const diffCard = document.getElementById('diff-card');
-  const diffBody = document.getElementById('diff-tbody');
-  const diffs = [];
-
-  rows.forEach(tr => {
-    const ing = tr.dataset.ing;
-    const poQty = num(tr.dataset.poQty);
-    const poPrice = num(tr.dataset.poPrice);
-    const actQty = num(tr.querySelector('.si-qty').value);
-    const actPrice = num(tr.querySelector('.si-price').value);
-
-    const qtyDiff = actQty - poQty;
-    const priceChanged = Math.abs(actPrice - poPrice) > 0.0001;
-
-    tr.querySelector('.si-qty').style.borderColor = qtyDiff !== 0 ? 'var(--danger)' : 'var(--border)';
-    tr.querySelector('.si-price').style.borderColor = priceChanged ? 'var(--danger)' : 'var(--border)';
-
-    if (qtyDiff !== 0 || priceChanged) {
-      const unit = INGREDIENTS[ing]?.unit || '';
-      const diffBadge = qtyDiff === 0
-        ? '<span class="badge badge-ok">一致</span>'
-        : `<span class="badge badge-warn">${qtyDiff > 0 ? '+' : ''}${qtyDiff}${unit}</span>`;
-      diffs.push(`
-        <tr>
-          <td>${ing}</td>
-          <td>${poQty}${unit}</td>
-          <td>${actQty}${unit}</td>
-          <td>${diffBadge}</td>
-          <td>${fmt(poPrice)}</td>
-          <td>${fmt(actPrice)}</td>
-          <td><input type="text" class="si-reason" placeholder="如：运输损耗/供应商临时涨价"></td>
-        </tr>`);
-    }
-  });
-
-  if (diffs.length) {
-    diffCard.style.display = 'block';
-    diffBody.innerHTML = diffs.join('');
-  } else {
-    diffCard.style.display = 'none';
-    diffBody.innerHTML = '';
-  }
-}
-
-function submitStockIn() {
-  const no = document.getElementById('si-po-select').value;
-  if (!no) { toast('请选择关联的采购单', 'error'); return; }
-  const rows = [...document.querySelectorAll('#stockin-tbody .si-row')];
-  if (!rows.length) { toast('入库明细为空，无法提交', 'error'); return; }
-
-  const wh = document.getElementById('si-warehouse').value;
-  const siNo = 'SI' + new Date().toISOString().slice(0,10).replace(/-/g,'') + String(siSeq++).padStart(3, '0');
+  const total = items.reduce((s, it) => s + it.quantity * it.unit_price, 0);
   const now = new Date();
-  const time = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const orderNo = 'PO' + dateStr + String(Date.now()).slice(-4);
 
-  const tbody = document.getElementById('si-list-tbody');
-  tbody.querySelectorAll('.empty-row').forEach(r => r.remove());
+  try {
+    // 1. 创建采购单
+    const po = await apiPost('/api/purchase-orders', {
+      store_id: STORE_ID,
+      supplier_id: parseInt(supplierId),
+      order_no: orderNo,
+      status: 'pending',
+      created_by: parseInt(buyerId),
+    });
 
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${siNo}</td><td>${no}</td><td>${wh}</td>
-    <td><span class="badge badge-pending">待审批</span></td>
-    <td>${time}</td>
-    <td><button class="btn btn-primary btn-sm" onclick="approveSI(this)">审批</button></td>`;
-  tbody.prepend(tr);
-
-  toast(`入库单 ${siNo} 已提交经理审批（审批通过后计入库存）`, 'success');
-}
-
-function approveSI(btn) {
-  const tr = btn.closest('tr');
-  const siNo = tr.cells[0].innerText;
-
-  openModal({
-    title: `审批入库单 ${siNo}`,
-    body: `
-      <div class="alert alert-warn">审批通过后，系统将按实际入库数量更新库存并重新计算移动加权平均成本。</div>
-      <p style="font-size:13px;line-height:1.8;">
-        关联采购单：<b>${tr.cells[1].innerText}</b><br>
-        入库仓库：<b>${tr.cells[2].innerText}</b><br>
-        提交时间：<b>${tr.cells[4].innerText}</b>
-      </p>`,
-    footer: `
-      <button class="btn btn-danger" onclick="finishApproveSI('rejected')">驳回</button>
-      <button class="btn btn-primary" onclick="finishApproveSI('approved')">通过审批并入库</button>`
-  });
-  window.__pendingSITr = tr;
-}
-
-function finishApproveSI(result) {
-  const tr = window.__pendingSITr;
-  if (tr) {
-    if (result === 'approved') {
-      tr.cells[3].innerHTML = '<span class="badge badge-approved">已入库</span>';
-      tr.cells[5].innerHTML = '<button class="btn btn-outline btn-sm" onclick="toast(\'入库单已归档\',\'success\')">查看</button>';
-      toast('审批通过，库存已更新', 'success');
-      applyStockInToInventory(tr.cells[1].innerText);
-    } else {
-      tr.cells[3].innerHTML = '<span class="badge badge-rejected">已驳回</span>';
-      tr.cells[5].innerHTML = '<button class="btn btn-outline btn-sm" onclick="toast(\'入库单已归档\',\'success\')">查看</button>';
-      toast('入库单已驳回', 'error');
-    }
-  }
-  closeModal();
-}
-
-function applyStockInToInventory(poNo) {
-  const data = PO_DB[poNo];
-  if (!data) return;
-  data.items.forEach(it => {
-    let item = STOCK.find(s => s.name === it.ing);
-    if (item) {
-      const newQty = item.qty + it.qty;
-      item.cost = newQty > 0 ? (item.qty * item.cost + it.qty * it.price) / newQty : it.price;
-      item.qty = newQty;
-    } else {
-      STOCK.push({
-        name: it.ing,
-        wh: document.getElementById('si-warehouse').value || '一号食材库',
-        qty: it.qty,
-        safe: 0,
-        cost: it.price,
-        exp: '—'
+    // 2. 创建明细
+    for (const it of items) {
+      await apiPost('/api/purchase-order-items', {
+        purchase_order_id: po.id,
+        material_id: it.material_id,
+        quantity: it.quantity,
+        unit_price: it.unit_price,
+        amount: it.quantity * it.unit_price,
+        tax_amount: 0,
       });
     }
-  });
-  renderInventory();
+
+    toast(`采购单 ${orderNo} 已提交（金额 ${fmt(total)}）`, 'success');
+    document.getElementById('purchase-tbody').innerHTML = emptyRow(6, '📝', '暂无采购明细');
+    document.getElementById('po-total').textContent = '¥0.00';
+    await loadPurchaseOrders();
+  } catch (e) {
+    toast('提交失败：' + e.message, 'error');
+  }
 }
 
-/* =========================================================
- *  4. 库存管理
- * ========================================================= */
-function renderInventory() {
-  const tbody = document.getElementById('inventory-tbody');
-  if (!tbody) return;
+async function approvePO(id) {
+  if (!confirm('确认通过该采购单审批？')) return;
+  try {
+    await apiPut(`/api/purchase-orders/${id}`, {
+      store_id: STORE_ID,
+      supplier_id: 1,
+      order_no: 'placeholder_' + id,
+      status: 'approved',
+    });
+    toast('已通过审批', 'success');
+    await loadPurchaseOrders();
+  } catch (e) {
+    toast('操作失败：' + e.message, 'error');
+  }
+}
 
-  if (!STOCK.length) {
-    tbody.innerHTML = emptyRow(7, '🗄️', '暂无库存数据，请先完成采购入库');
+async function delPurchase(id) {
+  if (!confirm('确认删除该采购单？')) return;
+  try {
+    await apiDel(`/api/purchase-orders/${id}`);
+    toast('已删除', 'success');
+    await loadPurchaseOrders();
+  } catch (e) {
+    toast('删除失败：' + e.message, 'error');
+  }
+}
+
+/* ============================
+   5. 入库管理
+   ============================ */
+let allStockIn = [];
+
+async function loadStockInList() {
+  await loadPurchaseOrders();   // 同步采购单下拉
+  const tbody = document.getElementById('si-list-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
+  try {
+    allStockIn = await apiGet('/api/stock-in');
+    if (!allStockIn.length) {
+      tbody.innerHTML = emptyRow(5, '📥', '暂无入库单');
+      return;
+    }
+    tbody.innerHTML = allStockIn.map(si => {
+      const po = allPurchaseOrders.find(p => p.id === si.source_id);
+      const badge = si.status === 'approved' ? 'badge-approved' :
+                    si.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+      const label = si.status === 'approved' ? '已入库' :
+                    si.status === 'rejected' ? '已驳回' : '待审批';
+      return `<tr>
+        <td>入库单#${si.id}</td>
+        <td>${po ? po.order_no : si.source_id || '—'}</td>
+        <td>仓库${si.warehouse_id || '—'}</td>
+        <td><span class="badge ${badge}">${label}</span></td>
+        <td>
+          ${si.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approveSI(${si.id})">审批</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="delSI(${si.id})">删除</button>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
+  }
+}
+
+async function loadPOItems() {
+  const poId = document.getElementById('si-po-select').value;
+  const tbody = document.getElementById('stockin-tbody');
+  if (!poId) {
+    tbody.innerHTML = emptyRow(6, '📦', '请先选择关联的采购单');
     return;
   }
-
-  const today = new Date();
-  tbody.innerHTML = STOCK.map(s => {
-    const low = s.qty < s.safe;
-    let expSoon = false;
-    if (s.exp && s.exp !== '—') {
-      const days = (new Date(s.exp) - today) / 864e5;
-      expSoon = days <= 7;
+  tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+  try {
+    const items = await apiGet(`/api/purchase-order-items?purchase_order_id=${poId}`);
+    // 后端未实现按 id 过滤，退化为全部拉取后前端过滤
+    let list = items;
+    if (!Array.isArray(items) || items.length === 0) {
+      const all = await apiGet('/api/purchase-order-items');
+      list = all.filter(it => String(it.purchase_order_id) === String(poId));
     }
-    let badge = '<span class="badge badge-ok">正常</span>';
-    if (low) badge = '<span class="badge badge-warn">低于安全库存</span>';
-    else if (expSoon) badge = '<span class="badge badge-warn">临期预警</span>';
+    if (!list.length) {
+      tbody.innerHTML = emptyRow(6, '📦', '该采购单无明细');
+      return;
+    }
+    tbody.innerHTML = list.map(it => {
+      const mat = CACHE.materials.find(m => m.id === it.material_id);
+      const today = new Date().toISOString().slice(0, 10);
+      const expire = new Date(Date.now() + 365 * 864e5).toISOString().slice(0, 10);
+      return `<tr class="si-row" data-mat="${it.material_id}" data-po-qty="${it.quantity}" data-po-price="${it.unit_price}">
+        <td>${mat ? mat.name : it.material_id}</td>
+        <td>${it.quantity}</td>
+        <td><input type="number" class="si-qty" value="${it.quantity}" step="0.01"></td>
+        <td>${fmt(it.unit_price)}</td>
+        <td><input type="number" class="si-price" value="${it.unit_price}" step="0.01"></td>
+        <td><input type="text" class="si-batch" value="BN${today.replace(/-/g, '')}${it.material_id}"></td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
+  }
+}
 
+async function submitStockIn() {
+  const poId = document.getElementById('si-po-select').value;
+  if (!poId) { toast('请选择关联采购单', 'error'); return; }
+  const rows = [...document.querySelectorAll('#stockin-tbody .si-row')];
+  if (!rows.length) { toast('入库明细为空', 'error'); return; }
+
+  try {
+    const si = await apiPost('/api/stock-in', {
+      store_id: STORE_ID,
+      warehouse_id: 1,
+      source_type: '采购',
+      source_id: parseInt(poId),
+      operator_id: 1,
+    });
+
+    for (const tr of rows) {
+      await apiPost('/api/stock-in-items', {
+        stock_in_id: si.id,
+        material_id: parseInt(tr.dataset.mat),
+        quantity: num(tr.querySelector('.si-qty').value),
+        unit_cost: num(tr.querySelector('.si-price').value),
+        batch_no: tr.querySelector('.si-batch').value,
+        production_date: new Date().toISOString().slice(0, 10),
+        expire_date: new Date(Date.now() + 365 * 864e5).toISOString().slice(0, 10),
+      });
+    }
+
+    toast(`入库单已提交（#${si.id}）`, 'success');
+    document.getElementById('stockin-tbody').innerHTML = emptyRow(6, '📦', '请先选择关联的采购单');
+    await loadStockInList();
+  } catch (e) {
+    toast('提交失败：' + e.message, 'error');
+  }
+}
+
+async function approveSI(id) {
+  if (!confirm('确认审批通过？通过后将计入库存。')) return;
+  try {
+    // 更新入库单状态
+    await apiPut(`/api/stock-in/${id}`, {
+      store_id: STORE_ID,
+      warehouse_id: 1,
+      source_type: '采购',
+      status: 'approved',
+    });
+
+    // 更新库存（移动加权平均）
+    const items = await apiGet('/api/stock-in-items');
+    const myItems = items.filter(it => String(it.stock_in_id) === String(id));
+    for (const it of myItems) {
+      const inv = await apiGet('/api/inventory');
+      const exist = inv.find(i => String(i.material_id) === String(it.material_id));
+      if (exist) {
+        const newQty = num(exist.quantity) + num(it.quantity);
+        const newCost = newQty > 0
+          ? (num(exist.quantity) * num(exist.avg_cost) + num(it.quantity) * num(it.unit_cost)) / newQty
+          : num(it.unit_cost);
+        await apiPut(`/api/inventory/${exist.id}`, {
+          store_id: STORE_ID,
+          warehouse_id: 1,
+          material_id: it.material_id,
+          quantity: newQty,
+          avg_cost: newCost,
+        });
+      } else {
+        await apiPost('/api/inventory', {
+          store_id: STORE_ID,
+          warehouse_id: 1,
+          material_id: it.material_id,
+          quantity: num(it.quantity),
+          avg_cost: num(it.unit_cost),
+        });
+      }
+    }
+
+    toast('已审批通过，库存已更新', 'success');
+    await loadStockInList();
+  } catch (e) {
+    toast('操作失败：' + e.message, 'error');
+  }
+}
+
+async function delSI(id) {
+  if (!confirm('确认删除该入库单？')) return;
+  try {
+    await apiDel(`/api/stock-in/${id}`);
+    toast('已删除', 'success');
+    await loadStockInList();
+  } catch (e) {
+    toast('删除失败：' + e.message, 'error');
+  }
+}
+
+/* ============================
+   6. 库存管理
+   ============================ */
+let allInventory = [];
+
+async function loadInventory() {
+  const tbody = document.getElementById('inventory-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
+  try {
+    allInventory = await apiGet('/api/inventory');
+    if (!allInventory.length) {
+      tbody.innerHTML = emptyRow(5, '🗄️', '暂无库存数据，请先完成采购入库');
+      return;
+    }
+    if (!CACHE.materials.length) {
+      CACHE.materials = await apiGet('/api/materials').catch(() => []);
+    }
+    renderInventory(allInventory);
+  } catch (e) {
+    tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
+  }
+}
+
+function renderInventory(list) {
+  const tbody = document.getElementById('inventory-tbody');
+  if (!list.length) { tbody.innerHTML = emptyRow(5, '🗄️', '暂无匹配库存'); return; }
+  tbody.innerHTML = list.map(i => {
+    const mat = CACHE.materials.find(m => m.id === i.material_id);
     return `<tr>
-      <td>${s.name}</td>
-      <td>${s.wh}</td>
-      <td style="${low ? 'color:var(--danger);font-weight:600;' : ''}">${Number(s.qty).toFixed(3).replace(/\.?0+$/, '')} ${INGREDIENTS[s.name]?.unit || ''}</td>
-      <td>${s.safe} ${INGREDIENTS[s.name]?.unit || ''}</td>
-      <td>${fmt(s.cost)}</td>
-      <td style="${expSoon ? 'color:var(--warning);font-weight:600;' : ''}">${s.exp}</td>
-      <td>${badge}</td>
+      <td>${mat ? mat.name : i.material_id}</td>
+      <td>仓库${i.warehouse_id || '—'}</td>
+      <td>${Number(i.quantity || 0).toFixed(3).replace(/\.?0+$/, '')} ${mat ? mat.unit : ''}</td>
+      <td>${fmt(i.avg_cost)}</td>
+      <td>${(i.updated_at || '').replace('T', ' ').slice(0, 19)}</td>
     </tr>`;
   }).join('');
 }
 
 document.getElementById('inventory-search')?.addEventListener('input', function () {
   const kw = this.value.trim().toLowerCase();
-  document.querySelectorAll('#inventory-tbody tr:not(.empty-row)').forEach(tr => {
-    tr.style.display = tr.textContent.toLowerCase().includes(kw) ? '' : 'none';
-  });
+  renderInventory(allInventory.filter(i => {
+    const mat = CACHE.materials.find(m => m.id === i.material_id);
+    return mat && mat.name.toLowerCase().includes(kw);
+  }));
 });
 
-function openStocktake() {
-  if (!STOCK.length) {
-    toast('暂无库存记录，无法发起盘点', 'warn');
-    return;
-  }
-  const rows = STOCK.map((s, i) => `
-    <tr>
-      <td>${s.name}</td>
-      <td>${Number(s.qty).toFixed(3).replace(/\.?0+$/, '')} ${INGREDIENTS[s.name]?.unit || ''}</td>
-      <td><input type="number" class="st-actual" data-idx="${i}" value="${s.qty}" step="0.001"></td>
-      <td class="st-diff" data-idx="${i}">0</td>
-    </tr>`).join('');
+/* ============================
+   7. 菜品与配方
+   ============================ */
+let allDishes = [];
+let currentBomDishId = null;
 
-  openModal({
-    title: '发起库存盘点',
-    width: 620,
-    body: `
-      <div class="alert alert-warn">请填写各项原材料的实际盘点数量，系统将自动计算差异并生成调整流水。</div>
-      <table>
-        <thead><tr><th>原材料</th><th>账面数量</th><th>实盘数量</th><th>差异</th></tr></thead>
-        <tbody id="st-tbody">${rows}</tbody>
-      </table>`,
-    footer: `
-      <button class="btn btn-outline" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="submitStocktake()">提交盘点结果</button>`,
-    onOpen: () => {
-      document.querySelectorAll('.st-actual').forEach(inp => {
-        inp.addEventListener('input', function () {
-          const idx = +this.dataset.idx;
-          const diff = num(this.value) - STOCK[idx].qty;
-          const cell = document.querySelector(`.st-diff[data-idx="${idx}"]`);
-          cell.textContent = (diff > 0 ? '+' : '') + diff.toFixed(3).replace(/\.?0+$/, '');
-          cell.style.color = diff === 0 ? 'var(--text-muted)' : (diff > 0 ? 'var(--success)' : 'var(--danger)');
-          cell.style.fontWeight = diff === 0 ? '400' : '700';
-        });
-      });
+async function loadDishes() {
+  const tbody = document.getElementById('dish-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
+  try {
+    allDishes = await apiGet('/api/dishes');
+    if (!allDishes.length) {
+      tbody.innerHTML = emptyRow(5, '🍽️', '暂无菜品');
+      return;
     }
-  });
-}
-
-function submitStocktake() {
-  let changes = 0;
-  document.querySelectorAll('.st-actual').forEach(inp => {
-    const idx = +inp.dataset.idx;
-    const actual = num(inp.value);
-    if (Math.abs(actual - STOCK[idx].qty) > 1e-6) { STOCK[idx].qty = actual; changes++; }
-  });
-  renderInventory();
-  closeModal();
-  toast(changes ? `盘点完成，已调整 ${changes} 项库存` : '盘点完成，账实相符', changes ? 'success' : '');
-}
-
-function openLossOut() {
-  if (!STOCK.length) {
-    toast('暂无库存记录，无法出库', 'warn');
-    return;
+    tbody.innerHTML = allDishes.map(d => `
+      <tr>
+        <td>${d.name}</td>
+        <td>${fmt(d.selling_price)}</td>
+        <td>${d.pos_sku || '—'}</td>
+        <td><span class="badge ${d.status === 'active' ? 'badge-ok' : 'badge-warn'}">${d.status === 'active' ? '在售' : '下架'}</span></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="openBom(${d.id}, '${d.name}')">编辑配方</button>
+          <button class="btn btn-danger btn-sm" onclick="delDish(${d.id})">删除</button>
+        </td>
+      </tr>`).join('');
+  } catch (e) {
+    tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
   }
-  openModal({
-    title: '报损 / 领用出库',
-    body: `
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="form-item"><label>出库类型</label>
-          <select id="loss-type"><option>报损</option><option>内部领用</option><option>试吃</option></select>
-        </div>
-        <div class="form-item"><label>原材料</label>
-          <select id="loss-ing">${STOCK.map(s => `<option>${s.name}</option>`).join('')}</select>
-        </div>
-        <div class="form-item"><label>出库数量</label><input type="number" id="loss-qty" value="0" step="0.01"></div>
-        <div class="form-item"><label>经手人</label><input type="text" id="loss-by" value="张店长"></div>
-      </div>
-      <div class="form-item"><label>原因说明</label><input type="text" id="loss-reason" placeholder="如：蔬菜变质、员工餐"></div>`,
-    footer: `
-      <button class="btn btn-outline" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="submitLossOut()">确认出库</button>`
-  });
 }
 
-function submitLossOut() {
-  const ing = document.getElementById('loss-ing').value;
-  const qty = num(document.getElementById('loss-qty').value);
-  const type = document.getElementById('loss-type').value;
-  const reason = document.getElementById('loss-reason').value.trim() || '—';
-
-  if (qty <= 0) { toast('出库数量必须大于 0', 'error'); return; }
-  const item = STOCK.find(s => s.name === ing);
-  if (!item) { toast('未找到该原材料', 'error'); return; }
-  if (qty > item.qty) { toast(`库存不足，${ing} 当前仅剩 ${item.qty}`, 'error'); return; }
-
-  item.qty -= qty;
-  renderInventory();
-  closeModal();
-  toast(`${type}出库成功：${ing} × ${qty}（${reason}）`, 'success');
-}
-
-/* =========================================================
- *  5. 菜品与配方
- * ========================================================= */
 function toggleDishForm(show) {
   document.getElementById('dish-form-card').style.display = show ? 'block' : 'none';
   if (show) {
-    document.getElementById('dish-form-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('new-dish-name').value = '';
+    document.getElementById('new-dish-price').value = '';
+    document.getElementById('new-dish-code').value = '';
   }
 }
 
-document.getElementById('dish-search')?.addEventListener('input', function () {
-  const kw = this.value.trim().toLowerCase();
-  document.querySelectorAll('#dish-tbody tr:not(.empty-row)').forEach(tr => {
-    tr.style.display = tr.textContent.toLowerCase().includes(kw) ? '' : 'none';
-  });
-});
-
-function saveDish() {
+async function saveDish() {
   const name = document.getElementById('new-dish-name').value.trim();
-  const cat = document.getElementById('new-dish-cat').value;
   const price = num(document.getElementById('new-dish-price').value);
   const code = document.getElementById('new-dish-code').value.trim();
-  const status = document.getElementById('new-dish-status').value;
-
   if (!name) { toast('请填写菜品名称', 'error'); return; }
-  if (price <= 0) { toast('请填写有效的销售单价', 'error'); return; }
-  if (!code) { toast('请填写 POS 商品编码', 'error'); return; }
-  if ([...document.querySelectorAll('#dish-tbody tr:not(.empty-row)')].some(tr => tr.cells[3].innerText === code)) {
-    toast('该 POS 编码已存在，请勿重复', 'error'); return;
+  if (price <= 0) { toast('请填写有效售价', 'error'); return; }
+  if (!code) { toast('请填写 POS 编码', 'error'); return; }
+  try {
+    await apiPost('/api/dishes', {
+      store_id: STORE_ID,
+      name, selling_price: price, pos_sku: code, status: 'active',
+    });
+    toast('菜品已新增', 'success');
+    toggleDishForm(false);
+    await loadDishes();
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
   }
-
-  const tbody = document.getElementById('dish-tbody');
-  tbody.querySelectorAll('.empty-row').forEach(r => r.remove());
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${name}</td><td>${cat}</td><td>${fmt(price)}</td><td>${code}</td>
-    <td><span class="badge badge-warn">未配置配方</span></td>
-    <td><span class="badge ${status === '在售' ? 'badge-ok' : 'badge-warn'}">${status}</span></td>
-    <td><button class="btn btn-primary btn-sm" onclick="openBom('${name}', this)">立即配置</button></td>`;
-  tbody.appendChild(tr);
-
-  document.getElementById('new-dish-name').value = '';
-  document.getElementById('new-dish-price').value = '';
-  document.getElementById('new-dish-code').value = '';
-  toggleDishForm(false);
-  toast(`菜品「${name}」已保存，请继续配置配方`, 'success');
 }
 
-let currentBomDish = '';
+async function delDish(id) {
+  if (!confirm('确认删除该菜品？')) return;
+  try {
+    await apiDel(`/api/dishes/${id}`);
+    toast('已删除', 'success');
+    await loadDishes();
+  } catch (e) {
+    toast('删除失败：' + e.message, 'error');
+  }
+}
 
-function bomRowHtml(item = { ing: ING_NAMES[0], qty:0, loss:0, remark:'' }) {
-  const unit = INGREDIENTS[item.ing]?.unit || 'kg';
+async function openBom(dishId, dishName) {
+  currentBomDishId = dishId;
+  document.getElementById('bom-card').style.display = 'block';
+  document.getElementById('bom-dish-name').textContent = dishName;
+  if (!CACHE.materials.length) {
+    CACHE.materials = await apiGet('/api/materials').catch(() => []);
+  }
+  const tbody = document.getElementById('bom-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
+  try {
+    const all = await apiGet('/api/bom');
+    const mine = all.filter(b => String(b.dish_id) === String(dishId) && b.is_active !== false);
+    if (!mine.length) {
+      tbody.innerHTML = '';
+      addBomRow();
+    } else {
+      tbody.innerHTML = mine.map(b => bomRowHtml(b.material_id, b.quantity, b.unit, b.loss_rate)).join('');
+    }
+    document.getElementById('bom-card').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
+  }
+}
+
+function bomRowHtml(materialId = '', qty = 0, unit = '', loss = 0) {
+  const matOpts = CACHE.materials.map(m =>
+    `<option value="${m.id}" data-unit="${m.unit}" ${String(m.id) === String(materialId) ? 'selected' : ''}>${m.name}</option>`
+  ).join('');
+  const u = unit || (CACHE.materials.find(m => String(m.id) === String(materialId))?.unit || '');
   return `<tr>
-    <td><select class="bom-ing">${ingOptions(item.ing)}</select></td>
-    <td><input type="number" class="bom-qty" value="${item.qty}" step="0.001"></td>
-    <td><input type="text" class="bom-unit" value="${unit}" readonly></td>
-    <td><input type="number" class="bom-loss" value="${item.loss}" step="0.1"></td>
-    <td><input type="text" class="bom-remark" value="${item.remark || ''}" placeholder="备注"></td>
-    <td><button class="btn btn-danger btn-sm" onclick="removeBomRow(this)">删除</button></td>
+    <td><select class="bom-ing">${matOpts}</select></td>
+    <td><input type="number" class="bom-qty" value="${qty}" step="0.001"></td>
+    <td><input type="text" class="bom-unit" value="${u}" readonly></td>
+    <td><input type="number" class="bom-loss" value="${loss}" step="0.1"></td>
+    <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">删除</button></td>
   </tr>`;
 }
 
-function openBom(dishName, btn) {
-  currentBomDish = dishName;
-  const card = document.getElementById('bom-card');
-  card.style.display = 'block';
-  document.getElementById('bom-dish-name').innerText = dishName;
-
-  const data = BOM_DB[dishName] || [];
-  const tbody = document.getElementById('bom-tbody');
-  tbody.innerHTML = data.length
-    ? data.map(bomRowHtml).join('')
-    : bomRowHtml({ ing: ING_NAMES[0], qty:0, loss:0, remark:'' });
-
-  tbody.onchange = (e) => {
-    if (e.target.classList.contains('bom-ing')) {
-      const meta = INGREDIENTS[e.target.value];
-      if (meta) e.target.closest('tr').querySelector('.bom-unit').value = meta.unit;
-    }
-  };
-
-  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
 function addBomRow() {
-  document.getElementById('bom-tbody').insertAdjacentHTML('beforeend', bomRowHtml({ ing: ING_NAMES[0], qty:0, loss:0, remark:'' }));
+  if (!CACHE.materials.length) { toast('请先添加原材料', 'warn'); return; }
+  document.getElementById('bom-tbody').insertAdjacentHTML('beforeend',
+    bomRowHtml(CACHE.materials[0].id, 0, CACHE.materials[0].unit, 0));
 }
 
-function removeBomRow(btn) {
-  const tbody = document.getElementById('bom-tbody');
-  if (tbody.rows.length <= 1) { toast('配方至少需保留一种原材料', 'warn'); return; }
-  btn.closest('tr').remove();
-}
+document.getElementById('bom-tbody')?.addEventListener('change', e => {
+  if (e.target.classList.contains('bom-ing')) {
+    const tr = e.target.closest('tr');
+    const opt = e.target.options[e.target.selectedIndex];
+    tr.querySelector('.bom-unit').value = opt.dataset.unit || '';
+  }
+});
 
-function saveBom() {
-  if (!currentBomDish) { toast('未选择菜品', 'error'); return; }
-  const items = [];
-  document.querySelectorAll('#bom-tbody tr').forEach(tr => {
-    const ing = tr.querySelector('.bom-ing').value;
-    const qty = num(tr.querySelector('.bom-qty').value);
-    if (qty > 0) {
-      items.push({
-        ing, qty,
-        loss: num(tr.querySelector('.bom-loss').value),
-        remark: tr.querySelector('.bom-remark').value
+async function saveBom() {
+  if (!currentBomDishId) return;
+  const rows = [...document.querySelectorAll('#bom-tbody tr')];
+  const items = rows.map(tr => ({
+    dish_id: currentBomDishId,
+    material_id: parseInt(tr.querySelector('.bom-ing').value),
+    quantity: num(tr.querySelector('.bom-qty').value),
+    unit: tr.querySelector('.bom-unit').value,
+    loss_rate: num(tr.querySelector('.bom-loss').value) / 100,
+    version: 1,
+    is_active: true,
+  })).filter(it => it.material_id && it.quantity > 0);
+
+  if (!items.length) { toast('请至少填写一条有效配方', 'error'); return; }
+  try {
+    // 旧版本全部标记为失效
+    const all = await apiGet('/api/bom');
+    const old = all.filter(b => String(b.dish_id) === String(currentBomDishId));
+    for (const b of old) {
+      await apiPut(`/api/bom/${b.id}`, {
+        dish_id: b.dish_id, material_id: b.material_id,
+        quantity: b.quantity, unit: b.unit, loss_rate: b.loss_rate,
+        version: b.version, is_active: false,
       });
     }
-  });
-  if (!items.length) { toast('请至少填写一种有效原材料用量', 'error'); return; }
-
-  BOM_DB[currentBomDish] = items;
-
-  const tr = [...document.querySelectorAll('#dish-tbody tr:not(.empty-row)')].find(r => r.cells[0].innerText === currentBomDish);
-  if (tr) {
-    tr.cells[4].innerHTML = `<span class="badge badge-ok">已配置(${items.length}项)</span>`;
-    tr.cells[6].innerHTML = `<button class="btn btn-outline btn-sm" onclick="openBom('${currentBomDish}', this)">编辑配方</button>`;
-  }
-
-  document.getElementById('bom-card').style.display = 'none';
-  toast(`「${currentBomDish}」配方已保存并生成新版本`, 'success');
-}
-
-/* =========================================================
- *  6. 销售数据导入
- * ========================================================= */
-// 模拟文件解析结果（代表外部文件内容，非系统数据）
-const PREVIEW_DATA = [
-  { order:'ORD—', code:'DCF001',  name:'蛋炒饭',   qty:2, amount:36.00, matched:true },
-  { order:'ORD—', code:'JYCF001', name:'酱油炒饭', qty:1, amount:16.00, matched:true },
-  { order:'ORD—', code:'PBWT01',  name:'番茄蛋汤', qty:1, amount:12.00, matched:false }
-];
-
-function handleFileSelect(input) {
-  if (!input.files.length) return;
-  const file = input.files[0];
-
-  document.getElementById('upload-card').style.display = 'none';
-  document.getElementById('preview-card').style.display = 'block';
-  document.getElementById('preview-file-info').innerText = `文件：${file.name}　共 ${PREVIEW_DATA.length} 行`;
-
-  document.getElementById('preview-tbody').innerHTML = PREVIEW_DATA.map(r => `
-    <tr>
-      <td>${r.order}</td><td>${r.code}</td><td>${r.name}</td>
-      <td>${r.qty}</td><td>${fmt(r.amount)}</td>
-      <td>${r.matched ? '<span class="badge badge-ok">✓ 已匹配</span>' : '<span class="badge badge-warn">⚠ 未匹配</span>'}</td>
-    </tr>`).join('');
-
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const isDup = importedBatches.some(b => b.file === file.name || b.date === todayStr);
-  document.getElementById('duplicate-alert').style.display = isDup ? 'flex' : 'none';
-}
-
-function cancelUpload() {
-  document.getElementById('preview-card').style.display = 'none';
-  document.getElementById('upload-card').style.display = 'block';
-  document.getElementById('fileInput').value = '';
-}
-
-function confirmUpload() {
-  if (document.getElementById('duplicate-alert').style.display === 'flex') {
-    toast('该批次数据已存在，无法重复上传，请先撤销原批次', 'error');
-    return;
-  }
-  const now = new Date();
-  const dateStr = now.toISOString().slice(0, 10);
-  const matched = PREVIEW_DATA.filter(r => r.matched).length;
-  const unmatched = PREVIEW_DATA.length - matched;
-  const fname = `POS_${dateStr.replace(/-/g, '')}.csv`;
-
-  const tbody = document.getElementById('import-list-tbody');
-  tbody.querySelectorAll('.empty-row').forEach(r => r.remove());
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${fname}</td>
-    <td>${dateStr}</td>
-    <td>${PREVIEW_DATA.length}</td>
-    <td>${matched}</td>
-    <td>${unmatched}</td>
-    <td><span class="badge badge-ok">已完成</span></td>
-    <td>
-      <button class="btn btn-outline btn-sm" onclick="viewImport(this)">查看</button>
-      <button class="btn btn-danger btn-sm" onclick="revokeImport(this)">撤销</button>
-    </td>`;
-  tbody.prepend(tr);
-
-  importedBatches.push({ file: fname, date: dateStr, rows: PREVIEW_DATA.length, matched, unmatched });
-
-  const consumed = calcConsumption(PREVIEW_DATA.filter(r => r.matched));
-  applyConsumption(consumed);
-
-  cancelUpload();
-  if (consumed.length) {
-    const detail = consumed.map(c => `${c.ing} -${c.qty.toFixed(3).replace(/\.?0+$/, '')}`).join('，');
-    toast(`导入成功：${matched} 条已匹配并自动扣减库存（${detail}）`, 'success', 4200);
-  } else {
-    toast(`导入成功：${matched} 条已匹配（未配置配方，未产生耗料扣减）`, 'success', 3600);
-  }
-}
-
-function calcConsumption(records) {
-  const map = {};
-  records.forEach(r => {
-    const bom = BOM_DB[r.name] || [];
-    bom.forEach(b => {
-      const use = b.qty * r.qty * (1 + (b.loss || 0) / 100);
-      map[b.ing] = (map[b.ing] || 0) + use;
-    });
-  });
-  return Object.entries(map).map(([ing, qty]) => ({ ing, qty }));
-}
-
-function applyConsumption(list) {
-  list.forEach(c => {
-    const item = STOCK.find(s => s.name === c.ing);
-    if (item) item.qty = Math.max(0, item.qty - c.qty);
-  });
-  renderInventory();
-}
-
-function viewImport(btn) {
-  const tr = btn.closest('tr');
-  const date = tr.cells[1].innerText;
-  openModal({
-    title: `导入批次详情 · ${tr.cells[0].innerText}`,
-    width: 640,
-    body: `
-      <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;">
-        <div><label class="text-muted" style="font-size:12px;">销售日期</label><div style="font-weight:600;margin-top:4px;">${date}</div></div>
-        <div><label class="text-muted" style="font-size:12px;">总行数</label><div style="font-weight:600;margin-top:4px;">${tr.cells[2].innerText}</div></div>
-        <div><label class="text-muted" style="font-size:12px;">未匹配</label><div style="font-weight:600;margin-top:4px;">${tr.cells[4].innerText}</div></div>
-      </div>
-      <table>
-        <thead><tr><th>订单号</th><th>商品编码</th><th>商品名称</th><th>数量</th><th>金额</th><th>匹配结果</th></tr></thead>
-        <tbody>${PREVIEW_DATA.map(r => `
-          <tr>
-            <td>${r.order}</td><td>${r.code}</td><td>${r.name}</td>
-            <td>${r.qty}</td><td>${fmt(r.amount)}</td>
-            <td>${r.matched ? '<span class="badge badge-ok">已匹配</span>' : '<span class="badge badge-warn">未匹配</span>'}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`,
-    footer: `<button class="btn btn-outline" onclick="closeModal()">关闭</button>`
-  });
-}
-
-function revokeImport(btn) {
-  const tr = btn.closest('tr');
-  const file = tr.cells[0].innerText;
-  openModal({
-    title: '撤销导入批次',
-    body: `<div class="alert alert-danger">撤销后将回滚该批次产生的库存扣减与耗料记录，操作不可恢复。</div>
-           <p style="font-size:13px;">批次文件：<b>${file}</b></p>`,
-    footer: `
-      <button class="btn btn-outline" onclick="closeModal()">取消</button>
-      <button class="btn btn-danger" onclick="doRevokeImport()">确认撤销</button>`
-  });
-  window.__pendingImportTr = tr;
-}
-
-function doRevokeImport() {
-  const tr = window.__pendingImportTr;
-  if (tr) {
-    const records = PREVIEW_DATA.filter(r => r.matched);
-    const consumed = calcConsumption(records);
-    consumed.forEach(c => {
-      const item = STOCK.find(s => s.name === c.ing);
-      if (item) item.qty += c.qty;
-    });
-    renderInventory();
-
-    const file = tr.cells[0].innerText;
-    tr.remove();
-
-    const tbody = document.getElementById('import-list-tbody');
-    if (!tbody.querySelectorAll('tr:not(.empty-row)').length) {
-      tbody.innerHTML = emptyRow(7, '📥', '暂无导入记录');
+    for (const it of items) {
+      await apiPost('/api/bom', it);
     }
-
-    toast(`批次「${file}」已撤销，库存已回滚`, 'success');
+    toast('配方已保存', 'success');
+    document.getElementById('bom-card').style.display = 'none';
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
   }
-  closeModal();
 }
 
-/* =========================================================
- *  7. 财务管理
- * ========================================================= */
-function recalcFinance() {
-  const food = num(document.getElementById('fin-food').value);
+/* ============================
+   8. 销售数据导入
+   ============================ */
+async function loadImportBatches() {
+  if (!document.getElementById('imp-date').value) {
+    document.getElementById('imp-date').value = new Date().toISOString().slice(0, 10);
+  }
+  const tbody = document.getElementById('import-list-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+  try {
+    const list = await apiGet('/api/pos-import-batches');
+    if (!list.length) {
+      tbody.innerHTML = emptyRow(6, '📥', '暂无导入记录');
+      return;
+    }
+    tbody.innerHTML = list.map(b => `
+      <tr>
+        <td>${b.file_name}</td>
+        <td>${b.import_date}</td>
+        <td>${b.total_rows}</td>
+        <td>${b.matched_rows}</td>
+        <td>${b.unmatched_rows}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="delImportBatch(${b.id})">删除</button></td>
+      </tr>`).join('');
+  } catch (e) {
+    tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
+  }
+}
+
+async function saveImportBatch() {
+  const file = document.getElementById('imp-file').value.trim();
+  const date = document.getElementById('imp-date').value;
+  const total = parseInt(document.getElementById('imp-total').value) || 0;
+  if (!file) { toast('请填写文件名', 'error'); return; }
+  if (!date) { toast('请选择销售日期', 'error'); return; }
+  try {
+    await apiPost('/api/pos-import-batches', {
+      store_id: STORE_ID,
+      file_name: file,
+      import_date: date,
+      status: '已完成',
+      total_rows: total,
+      matched_rows: total,
+      unmatched_rows: 0,
+    });
+    toast('批次已记录', 'success');
+    document.getElementById('imp-file').value = '';
+    await loadImportBatches();
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
+  }
+}
+
+async function delImportBatch(id) {
+  if (!confirm('确认删除？')) return;
+  try {
+    await apiDel(`/api/pos-import-batches/${id}`);
+    toast('已删除', 'success');
+    await loadImportBatches();
+  } catch (e) {
+    toast('删除失败：' + e.message, 'error');
+  }
+}
+
+/* ============================
+   9. 财务管理
+   ============================ */
+async function loadFinance() {
+  if (!document.getElementById('fin-date').value) {
+    document.getElementById('fin-date').value = new Date().toISOString().slice(0, 10);
+  }
+  const tbody = document.getElementById('asset-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+  try {
+    const list = await apiGet('/api/assets');
+    if (!list.length) {
+      tbody.innerHTML = emptyRow(6, '🏗️', '暂无固定资产');
+      return;
+    }
+    tbody.innerHTML = list.map(a => `
+      <tr>
+        <td>${a.name}</td>
+        <td>${fmt(a.purchase_amount)}</td>
+        <td>${a.depreciation_method || '直线法'}</td>
+        <td>${a.useful_life_months || 0}个月</td>
+        <td>${fmt(a.monthly_depreciation)}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="delAsset(${a.id})">删除</button></td>
+      </tr>`).join('');
+  } catch (e) {
+    tbody.innerHTML = emptyRow(6, '⚠️', '加载失败：' + e.message);
+  }
+}
+
+async function saveCost() {
+  const d = document.getElementById('fin-date').value;
+  if (!d) { toast('请选择日期', 'error'); return; }
+  const material = num(document.getElementById('fin-material').value);
   const labor = num(document.getElementById('fin-labor').value);
   const rent = num(document.getElementById('fin-rent').value);
-  const dep = num(document.getElementById('fin-dep').value);
   const utility = num(document.getElementById('fin-utility').value);
   const other = num(document.getElementById('fin-other').value);
-
-  const totalCost = food + labor + rent + dep + utility + other;
-  const gross = DAILY_REVENUE - food;
-  const pretax = DAILY_REVENUE - totalCost;
-
-  document.getElementById('fin-cost-kpi').innerText = fmt(totalCost);
-  document.getElementById('fin-gross-kpi').innerText = fmt(gross);
-  document.getElementById('fin-pretax-kpi').innerText = fmt(pretax);
-  document.getElementById('fin-revenue-kpi').innerText = fmt(DAILY_REVENUE);
-
-  // 按 30 天累计估算月度数据
-  const monthlyBase = Math.max(0, pretax) * 30;
-  const taxAmount = monthlyBase * 0.01;
-  document.getElementById('tax-base').innerText = fmt(monthlyBase);
-  document.getElementById('tax-amount').innerText = fmt(taxAmount);
-
-  const ratio = DAILY_REVENUE > 0 ? ((pretax / DAILY_REVENUE) * 100).toFixed(1) + '%' : '—';
-  toast(`核算完成：税前利润 ${fmt(pretax)}（利润率 ${ratio}）`, 'success', 3200);
+  const total = material + labor + rent + utility + other;
+  try {
+    await apiPost('/api/cost-daily', {
+      store_id: STORE_ID,
+      cost_date: d,
+      material_cost: material,
+      labor_cost: labor,
+      rent_cost: rent,
+      utility_cost: utility,
+      depreciation_cost: 0,
+      other_cost: other,
+      total_cost: total,
+    });
+    toast(`成本已保存，合计 ${fmt(total)}`, 'success');
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
+  }
 }
 
 function openAssetForm() {
@@ -1729,176 +1435,253 @@ function openAssetForm() {
     title: '新增固定资产',
     body: `
       <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="form-item"><label>资产名称 *</label><input id="asset-name" placeholder="如：和面机"></div>
-        <div class="form-item"><label>购置原值（元）*</label><input type="number" id="asset-value" value="0" step="0.01"></div>
-        <div class="form-item"><label>使用年限（月）*</label><input type="number" id="asset-life" value="60"></div>
-        <div class="form-item"><label>预计净残值率（%）</label><input type="number" id="asset-residual" value="5" step="0.1"></div>
-      </div>
-      <div class="alert alert-success" id="asset-preview">月折旧额：¥0.00</div>`,
+        <div class="form-item"><label>资产名称 *</label><input id="asset-name"></div>
+        <div class="form-item"><label>购置原值 *</label><input type="number" id="asset-value" value="0" step="0.01"></div>
+        <div class="form-item"><label>使用年限(月) *</label><input type="number" id="asset-life" value="60"></div>
+        <div class="form-item"><label>残值率(%)</label><input type="number" id="asset-residual" value="5" step="0.1"></div>
+      </div>`,
     footer: `
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveAsset()">保存</button>`,
-    onOpen: () => {
-      const calc = () => {
-        const v = num(document.getElementById('asset-value').value);
-        const life = num(document.getElementById('asset-life').value);
-        const res = num(document.getElementById('asset-residual').value) / 100;
-        const m = life > 0 ? v * (1 - res) / life : 0;
-        document.getElementById('asset-preview').innerText = '月折旧额：' + fmt(m);
-        return m;
-      };
-      ['asset-value', 'asset-life', 'asset-residual'].forEach(id => {
-        document.getElementById(id).addEventListener('input', calc);
-      });
-      calc();
-    }
+      <button class="btn btn-primary" onclick="saveAsset()">保存</button>`
   });
 }
 
-function saveAsset() {
+async function saveAsset() {
   const name = document.getElementById('asset-name').value.trim();
   const value = num(document.getElementById('asset-value').value);
-  const life = num(document.getElementById('asset-life').value);
+  const life = parseInt(document.getElementById('asset-life').value) || 0;
   const res = num(document.getElementById('asset-residual').value) / 100;
-
   if (!name) { toast('请填写资产名称', 'error'); return; }
-  if (value <= 0) { toast('请填写有效的购置原值', 'error'); return; }
+  if (value <= 0) { toast('请填写购置原值', 'error'); return; }
   if (life <= 0) { toast('使用年限必须大于 0', 'error'); return; }
-
   const monthly = value * (1 - res) / life;
-  const tbody = document.getElementById('asset-tbody');
-  tbody.querySelectorAll('.empty-row').forEach(r => r.remove());
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${name}</td><td>${fmt(value)}</td><td>直线法</td>
-    <td>${life}个月</td><td>${fmt(monthly)}</td>`;
-  tbody.appendChild(tr);
-
-  closeModal();
-  toast(`资产「${name}」已登记，月折旧 ${fmt(monthly)}`, 'success');
+  try {
+    await apiPost('/api/assets', {
+      store_id: STORE_ID,
+      name,
+      purchase_amount: value,
+      purchase_date: new Date().toISOString().slice(0, 10),
+      depreciation_method: '直线法',
+      useful_life_months: life,
+      residual_rate: res,
+      monthly_depreciation: monthly,
+    });
+    toast('资产已登记', 'success');
+    closeModal();
+    await loadFinance();
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
+  }
 }
 
-/* =========================================================
- *  8. 报表中心（空壳：报表均为空）
- * ========================================================= */
-const REPORT_DATA = {
-  daily:     { title: '进销存日报',            head: ['原材料', '期初库存', '本期入库', '本期出库', '期末库存'], rows: [] },
-  loss:      { title: '损耗分析',              head: ['原材料', '理论消耗', '实际消耗', '差异', '损耗率'], rows: [] },
-  gross:     { title: '毛利分析（按菜品）',    head: ['菜品', '销量', '销售额', '理论成本', '毛利', '毛利率'], rows: [] },
-  supplier:  { title: '供应商采购排行',        head: ['排名', '供应商', '采购单数', '采购金额', '占比'], rows: [] },
-  abc:       { title: 'ABC 分析（按成本金额）', head: ['类别', '原材料', '消耗金额', '累计占比'], rows: [] },
-  pnl:       { title: '简化损益表',            head: ['项目', '本期', '上期', '环比'], rows: [] }
+async function delAsset(id) {
+  if (!confirm('确认删除？')) return;
+  try {
+    await apiDel(`/api/assets/${id}`);
+    toast('已删除', 'success');
+    await loadFinance();
+  } catch (e) {
+    toast('删除失败：' + e.message, 'error');
+  }
+}
+
+/* ============================
+   10. 报表（简单聚合）
+   ============================ */
+const REPORT_META = {
+  daily:    { title: '进销存日报', head: ['原材料', '当前库存', '成本'] },
+  loss:     { title: '损耗分析', head: ['原材料', '账面数量', '实际数量', '差异'] },
+  gross:    { title: '毛利分析', head: ['菜品', '售价', '状态'] },
+  supplier: { title: '供应商采购排行', head: ['供应商', '联系方式'] },
+  abc:      { title: 'ABC 分析', head: ['类别', '原材料', '最新单价'] },
+  pnl:      { title: '简化损益表', head: ['项目', '金额'] },
 };
 
-function openReport(key) {
-  const r = REPORT_DATA[key];
-  if (!r) return;
-  const body = r.rows.length
-    ? `<table>
-         <thead><tr>${r.head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
-         <tbody>${r.rows.map(row => `<tr>${row.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
-       </table>`
-    : `<table>
-         <thead><tr>${r.head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
-         <tbody>${emptyRow(r.head.length, '📊', '暂无数据，请先录入业务记录')}</tbody>
-       </table>`;
+async function openReport(key) {
+  const meta = REPORT_META[key];
+  if (!meta) return;
+  let rows = [];
+  try {
+    if (key === 'daily' || key === 'loss' || key === 'abc') {
+      const inv = await apiGet('/api/inventory');
+      if (!CACHE.materials.length) CACHE.materials = await apiGet('/api/materials');
+      rows = inv.map(i => {
+        const m = CACHE.materials.find(x => x.id === i.material_id);
+        return [m ? m.name : i.material_id, Number(i.quantity || 0).toFixed(3), fmt(i.avg_cost)];
+      });
+    } else if (key === 'gross') {
+      const dishes = await apiGet('/api/dishes');
+      rows = dishes.map(d => [d.name, fmt(d.selling_price), d.status]);
+    } else if (key === 'supplier') {
+      const sups = await apiGet('/api/suppliers');
+      rows = sups.map(s => [s.name, s.phone || '—']);
+    } else if (key === 'pnl') {
+      const costs = await apiGet('/api/cost-daily');
+      const totalCost = costs.reduce((s, c) => s + num(c.total_cost), 0);
+      rows = [['累计成本', fmt(totalCost)]];
+    }
+  } catch (e) {
+    rows = [];
+  }
+
+  const body = rows.length
+    ? `<table><thead><tr>${meta.head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+       <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`
+    : `<table><thead><tr>${meta.head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+       <tbody>${emptyRow(meta.head.length, '📊', '暂无数据')}</tbody></table>`;
 
   openModal({
-    title: r.title,
+    title: meta.title,
     width: 680,
     body,
-    footer: `
-      <button class="btn btn-outline" onclick="closeModal()">关闭</button>
-      <button class="btn btn-primary" onclick="toast('报表已导出（演示）','success')">导出 Excel</button>`
+    footer: `<button class="btn btn-outline" onclick="closeModal()">关闭</button>`,
   });
 }
 
-/* =========================================================
- *  9. 系统设置
- * ========================================================= */
-const SETTING_DATA = {
-  user: {
-    title: '用户与权限',
-    body: `
-      <table>
-        <thead><tr><th>角色</th><th>采购</th><th>库存</th><th>财务</th><th>设置</th></tr></thead>
-        <tbody>
-          <tr><td>老板</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
-          <tr><td>店长</td><td>✅</td><td>✅</td><td>查看</td><td>部分</td></tr>
-          <tr><td>库管</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
-          <tr><td>收银</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
-          <tr><td>财务</td><td>查看</td><td>查看</td><td>✅</td><td>❌</td></tr>
-        </tbody>
-      </table>`
-  },
-  pos: {
-    title: 'POS 对接模板',
-    body: `
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="form-item"><label>收银系统</label>
-          <select><option>美团收银</option><option>客如云</option><option>银豹</option><option>哗啦啦</option><option>自定义 CSV</option></select>
-        </div>
-        <div class="form-item"><label>字段映射方式</label>
-          <select><option>按 POS 商品编码匹配</option><option>按商品名称匹配</option></select>
-        </div>
-        <div class="form-item"><label>日期格式</label>
-          <select><option>YYYY-MM-DD</option><option>YYYY/MM/DD</option><option>MM/DD/YYYY</option></select>
-        </div>
-        <div class="form-item"><label>编码前缀规则</label><input type="text" placeholder="如：DCF/JYCF/PBWT"></div>
-      </div>
-      <div class="alert alert-warn">尚未配置任何映射规则，请至少添加一条后保存。</div>`
-  },
-  store: {
-    title: '门店 / 仓库',
-    body: `
-      <table>
-        <thead><tr><th>门店</th><th>仓库</th><th>地址</th><th>状态</th></tr></thead>
-        <tbody>${emptyRow(4, '🏪', '暂无门店/仓库信息')}</tbody>
-      </table>`
-  },
-  tax: {
-    title: '税务参数',
-    body: `
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="form-item"><label>纳税人类型</label>
-          <select><option>小规模纳税人</option><option>一般纳税人</option></select>
-        </div>
-        <div class="form-item"><label>增值税征收率</label><input type="text" value="1%"></div>
-        <div class="form-item"><label>企业所得税实际税负</label><input type="text" value="5%"></div>
-        <div class="form-item"><label>月免税额起征点</label><input type="text" value="¥100,000"></div>
-      </div>
-      <div class="alert alert-warn">税务参数变更后，次日起的自动核算将按新参数执行。</div>`
+/* ============================
+   11. 系统设置 · 用户管理
+   ============================ */
+let allUsers = [];
+
+async function loadUsers() {
+  const tbody = document.getElementById('user-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
+  try {
+    allUsers = await apiGet('/api/users');
+    if (!allUsers.length) {
+      tbody.innerHTML = emptyRow(5, '👥', '暂无用户');
+      return;
+    }
+    tbody.innerHTML = allUsers.map(u => `
+      <tr>
+        <td>${u.name}</td>
+        <td>${u.role}</td>
+        <td>${u.phone || '—'}</td>
+        <td><span class="badge ${u.status === 'active' ? 'badge-ok' : 'badge-warn'}">${u.status === 'active' ? '启用' : '停用'}</span></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="editUser(${u.id})">编辑</button>
+          <button class="btn btn-danger btn-sm" onclick="delUser(${u.id})">删除</button>
+        </td>
+      </tr>`).join('');
+  } catch (e) {
+    tbody.innerHTML = emptyRow(5, '⚠️', '加载失败：' + e.message);
   }
-};
+}
 
-function openSetting(key) {
-  const s = SETTING_DATA[key];
-  if (!s) return;
+function openUserForm() {
   openModal({
-    title: s.title,
-    width: 640,
-    body: s.body,
+    title: '新增用户',
+    body: `
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="form-item"><label>姓名 *</label><input id="user-name"></div>
+        <div class="form-item"><label>角色 *</label>
+          <select id="user-role">
+            <option value="owner">老板 / 管理员</option>
+            <option value="manager">店长</option>
+            <option value="staff">库管 / 员工</option>
+            <option value="finance">财务</option>
+          </select>
+        </div>
+        <div class="form-item"><label>电话</label><input id="user-phone"></div>
+        <div class="form-item"><label>状态</label>
+          <select id="user-status"><option value="active">启用</option><option value="inactive">停用</option></select>
+        </div>
+      </div>`,
     footer: `
-      <button class="btn btn-outline" onclick="closeModal()">关闭</button>
-      <button class="btn btn-primary" onclick="closeModal();toast('设置已保存','success')">保存设置</button>`
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveUser(null)">保存</button>`
   });
 }
 
-/* =========================================================
- *  初始化
- * ========================================================= */
-(function init() {
-  // 设置日期默认为今天
-  const today = new Date().toISOString().slice(0, 10);
-  const poDate = document.getElementById('po-date');
-  const siDate = document.getElementById('si-date');
-  if (poDate) poDate.value = today;
-  if (siDate) siDate.value = today;
+function editUser(id) {
+  const u = allUsers.find(x => x.id === id);
+  if (!u) return;
+  openModal({
+    title: '编辑用户',
+    body: `
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="form-item"><label>姓名 *</label><input id="user-name" value="${u.name || ''}"></div>
+        <div class="form-item"><label>角色 *</label>
+          <select id="user-role">
+            <option value="owner" ${u.role === 'owner' ? 'selected' : ''}>老板 / 管理员</option>
+            <option value="manager" ${u.role === 'manager' ? 'selected' : ''}>店长</option>
+            <option value="staff" ${u.role === 'staff' ? 'selected' : ''}>库管 / 员工</option>
+            <option value="finance" ${u.role === 'finance' ? 'selected' : ''}>财务</option>
+          </select>
+        </div>
+        <div class="form-item"><label>电话</label><input id="user-phone" value="${u.phone || ''}"></div>
+        <div class="form-item"><label>状态</label>
+          <select id="user-status">
+            <option value="active" ${u.status === 'active' ? 'selected' : ''}>启用</option>
+            <option value="inactive" ${u.status !== 'active' ? 'selected' : ''}>停用</option>
+          </select>
+        </div>
+      </div>`,
+    footer: `
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveUser(${id})">保存</button>`
+  });
+}
 
-  initPurchaseTable();
-  renderInventory();
+async function saveUser(id) {
+  const name = document.getElementById('user-name').value.trim();
+  if (!name) { toast('请填写姓名', 'error'); return; }
+  const payload = {
+    store_id: STORE_ID,
+    name,
+    role: document.getElementById('user-role').value,
+    phone: document.getElementById('user-phone').value.trim() || null,
+    status: document.getElementById('user-status').value,
+  };
+  try {
+    if (id) {
+      await apiPut(`/api/users/${id}`, payload);
+      toast('用户已更新', 'success');
+    } else {
+      await apiPost('/api/users', payload);
+      toast('用户已新增', 'success');
+    }
+    closeModal();
+    await loadUsers();
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
+  }
+}
+
+async function delUser(id) {
+  if (!confirm('确认删除该用户？')) return;
+  try {
+    await apiDel(`/api/users/${id}`);
+    toast('已删除', 'success');
+    await loadUsers();
+  } catch (e) {
+    toast('删除失败：' + e.message, 'error');
+  }
+}
+
+/* ============================
+   初始化
+   ============================ */
+(async function init() {
+  const today = new Date().toISOString().slice(0, 10);
+  ['po-date', 'si-date', 'imp-date', 'fin-date'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.value) el.value = today;
+  });
+
+  try {
+    // 预加载基础数据到缓存
+    CACHE.suppliers = await apiGet('/api/suppliers').catch(() => []);
+    CACHE.materials = await apiGet('/api/materials').catch(() => []);
+    CACHE.users = await apiGet('/api/users').catch(() => []);
+  } catch (e) { console.error(e); }
+
+  // 默认进首页
+  await loadDashboard();
 })();
 </script>
 </body>
 </html>
+
+
+
