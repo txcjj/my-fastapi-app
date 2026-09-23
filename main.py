@@ -661,3 +661,44 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/")
 def index():
     return FileResponse("static/index.html")
+
+# =========================================================
+# 补充：仓库、分类、门店、用户 的编辑（PUT）接口
+# =========================================================
+
+@app.put("/api/warehouses/{wid}")
+def update_warehouse(wid: int, item: schemas.WarehouseIn, db: Session = Depends(get_db)):
+    params = item.dict()
+    params["id"] = wid
+    db.execute(text("UPDATE warehouses SET store_id=:store_id, name=:name, type=:type WHERE id=:id"), params)
+    db.commit()
+    return {"message": "更新成功"}
+
+@app.put("/api/categories/{cid}")
+def update_category(cid: int, item: schemas.CategoryIn, db: Session = Depends(get_db)):
+    params = item.dict()
+    params["id"] = cid
+    db.execute(text("UPDATE categories SET store_id=:store_id, name=:name, parent_id=:parent_id WHERE id=:id"), params)
+    db.commit()
+    return {"message": "更新成功"}
+
+@app.put("/api/stores/{sid}")
+def update_store(sid: int, item: schemas.StoreIn, db: Session = Depends(get_db)):
+    params = item.dict()
+    params["id"] = sid
+    db.execute(text("UPDATE stores SET name=:name, address=:address, tax_rate=:tax_rate WHERE id=:id"), params)
+    db.commit()
+    return {"message": "更新成功"}
+
+@app.put("/api/users/{uid}")
+def update_user(uid: int, item: schemas.UserIn, db: Session = Depends(get_db)):
+    params = item.dict()
+    params["id"] = uid
+    db.execute(text("""
+        UPDATE users SET store_id=:store_id, auth_uid=:auth_uid, name=:name,
+        role=:role, phone=:phone, status=:status WHERE id=:id
+    """), params)
+    db.commit()
+    return {"message": "更新成功"}
+
+
