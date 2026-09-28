@@ -1573,22 +1573,26 @@ document.getElementById('bom-tbody')?.addEventListener('change', e => {
   }
 });
 async function saveBom() {
-  if (!currentBomDishId) return;
+  const dishId = parseInt(currentBomDishId);
+  if (!dishId) { toast('菜品ID丢失，请重新点"编辑配方"', 'error'); return; }
   const rows = [...document.querySelectorAll('#bom-tbody tr')];
-  const items = rows.map(tr => ({
-    material_id: parseInt(tr.querySelector('.bom-ing').value),
-    quantity: num(tr.querySelector('.bom-qty').value),
-    unit: tr.querySelector('.bom-unit').value,
-    loss_rate: num(tr.querySelector('.bom-loss').value) / 100,
-  })).filter(it => it.material_id && it.quantity > 0);
-  if (!items.length) { toast('请至少填写一条有效配方', 'error'); return; }
+  const items = rows.map(tr => {
+    const sel = tr.querySelector('.bom-ing');
+    const mid = sel ? parseInt(sel.value) : NaN;
+    return {
+      material_id: mid,
+      quantity: num(tr.querySelector('.bom-qty').value),
+      unit: tr.querySelector('.bom-unit').value,
+      loss_rate: num(tr.querySelector('.bom-loss').value) / 100,
+    };
+  }).filter(it => it.material_id > 0 && it.quantity > 0);
+  if (!items.length) { toast('请至少填写一条有效配方（原材料必须选）', 'error'); return; }
   try {
-    // 走后端事务接口：内部软删旧配方 + 插新配方，避免中途失败丢配方
-    await apiPut('/api/bom/batch', { dish_id: currentBomDishId, items });
-    toast('配方已保存', 'success');
+    const res = await apiPut('/api/bom/batch', { dish_id: dishId, items });
+    toast(`配方已保存（${items.length} 项）`, 'success');
     document.getElementById('bom-card').style.display = 'none';
   } catch (e) { toast('保存失败：' + e.message, 'error'); }
-}
+
 
 /* ========== 销售数据导入 ========== */
 let TPL_INFO = null;
