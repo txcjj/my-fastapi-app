@@ -582,6 +582,105 @@ register_crud(User,              schemas.UserIn,              "/users",         
 register_crud(Supplier,          schemas.SupplierIn,          "/suppliers",           "供应商",      "name")
 register_crud(Warehouse,         schemas.WarehouseIn,         "/warehouses",          "仓库",        "name")
 register_crud(Category,          schemas.CategoryIn,          "/categories",          "分类",        "name")
+# ---------- 原材料：同店同名防重复（必须在通用 CRUD 之前注册） ----------
+def _norm_name(n) -> str:
+    return (n or "").strip()
+
+def _assert_material_name_free(db: Session, store_id, name: str, exclude_id: int = None):
+    q = db.query(Material).filter(Material.store_id == store_id, Material.name == name)
+    if exclude_id is not None:
+        q = q.filter(Material.id != exclude_id)
+    if q.first():
+        raise HTTPException(status_code=400, detail=f"原材料「{name}」已存在，请勿重复创建（可在系统设置中合并重复原材料）")
+
+@app.post("/api/materials", tags=["原材料"], summary="新增原材料（同名校验）", status_code=201)
+def create_material(payload: schemas.MaterialIn, db: Session = Depends(get_db)):
+    data = payload.model_dump(exclude_unset=True)
+    data["name"] = _norm_name(data.get("name"))
+    if not data["name"]:
+        raise HTTPException(status_code=400, detail="名称不能为空")
+    _assert_material_name_free(db, data.get("store_id"), data["name"])
+    obj = Material(**data)
+    db.add(obj); db.commit(); db.refresh(obj)
+    return obj
+
+@app.put("/api/materials/{item_id}", tags=["原材料"], summary="更新原材料（同名校验）")
+def update_material(item_id: int, payload: schemas.MaterialIn, db: Session = Depends(get_db)):
+    obj = db.query(Material).filter(Material.id == item_id).first()
+    if not obj:
+        raise HTTPException(status_code=404, detail="原材料 记录不存在")
+    data = payload.model_dump(exclude_unset=True)
+    if "name" in data:
+        data["name"] = _norm_name(data["name"])
+        _assert_material_name_free(db, data.get("store_id", obj.store_id), data["name"], exclude_id=item_id)
+    for k, v in data.items():
+        setattr(obj, k, v)
+    db.commit(); db.refresh(obj)
+    return obj
+
+@app.get("/api/materials-duplicates", tags=["原材料"], summary="查找同名重复原材料")
+def material_duplicates(store_id: int = 1, db: Session = Depends(get_db)):
+    mats = db.query(Material).filter(Material.store_id == store_id).order_by(Material.id).all()
+    groups = defaultdict(list)
+    for m in mats:
+        groups[_norm_name(m.name)].append(m)
+    inv = defaultdict(float)
+    for r in db.query(Inventory).filter(Inventory.store_id == store_id).all():
+        inv[r.material_id] += float(r.quantity or 0)
+    out = []
+    for name, ms in groups.items():
+        if len(ms) < 2:
+            continue
+        # 建议保留：库存最多的；并列则取 id 最小
+        keep = sorted(ms, key=lambda m: (-inv[m.id], m.id))[0]
+        out.append({
+            "name": name, "keep_id": keep.id,
+            "items": [{"id": m.id, "unit": m.unit, "stock": inv[m.id]} for m in ms],
+        })
+    return out
+
+class MaterialMergeIn(BaseModel):
+    keep_id: int
+    remove_ids: List[int]
+
+@app.post("/api/materials-merge", tags=["原材料"], summary="合并重复原材料（配方/采购/入库/出库/盘点/库存全部并入保留项）")
+def merge_materials(payload: MaterialMergeIn, db: Session = Depends(get_db)):
+    keep = db.query(Material).filter(Material.id == payload.keep_id).first()
+    if not keep:
+        raise HTTPException(status_code=404, detail="保留的原材料不存在")
+    remove_ids = [i for i in set(payload.remove_ids) if i != payload.keep_id]
+    if not remove_ids:
+        raise HTTPException(status_code=400, detail="没有需要合并的项")
+    removes = db.query(Material).filter(Material.id.in_(remove_ids)).all()
+    if len(removes) != len(remove_ids):
+        raise HTTPException(status_code=404, detail="待合并的原材料不存在")
+    try:
+        for model in (Bom, PurchaseOrderItem, StockInItem, StockOutItem, StockTakeItem):
+            db.query(model).filter(model.material_id.in_(remove_ids)).update(
+                {model.material_id: payload.keep_id}, synchronize_session=False)
+        # 库存：按仓库并入保留项（数量相加，成本保留原保留项，无则沿用）
+        for r in db.query(Inventory).filter(Inventory.material_id.in_(remove_ids)).all():
+            target = db.query(Inventory).filter(
+                Inventory.store_id == r.store_id, Inventory.warehouse_id == r.warehouse_id,
+                Inventory.material_id == payload.keep_id).first()
+            if target:
+                target.quantity = (target.quantity or 0) + (r.quantity or 0)
+                if not target.avg_cost:
+                    target.avg_cost = r.avg_cost
+                db.delete(r)
+            else:
+                r.material_id = payload.keep_id
+        db.flush()
+        for m in removes:
+            db.delete(m)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.exception("合并原材料失败")
+        raise HTTPException(status_code=500, detail=f"合并失败，已整体回滚：{e}")
+    return {"ok": True, "keep_id": payload.keep_id, "merged": len(removes)}
+
+
 register_crud(Material,          schemas.MaterialIn,          "/materials",           "原材料",      "name")
 register_crud(Dish,              schemas.DishIn,              "/dishes",              "菜品",        "name")
 # 注意：/api/bom/batch 必须在通用 CRUD 的 /api/bom/{item_id} 之前注册，否则 "batch" 会被当成 item_id 导致 422
