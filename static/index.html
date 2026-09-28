@@ -1592,7 +1592,7 @@ async function saveBom() {
     toast(`配方已保存（${items.length} 项）`, 'success');
     document.getElementById('bom-card').style.display = 'none';
   } catch (e) { toast('保存失败：' + e.message, 'error'); }
-
+}
 
 /* ========== 销售数据导入 ========== */
 let TPL_INFO = null;
