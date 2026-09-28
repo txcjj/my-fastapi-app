@@ -712,7 +712,7 @@ def approve_stock_in(item_id: int, db: Session = Depends(get_db)):
                 store_id=si.store_id,
                 warehouse_id=si.warehouse_id,
                 material_id=it.material_id,
-                quantity=it.quantity
+                quantity=it.quantity,
                 avg_cost=it.unit_cost,
             ))
     db.commit()
