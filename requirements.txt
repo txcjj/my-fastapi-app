@@ -1,7 +1,8 @@
-
 fastapi
-uvicorn
+uvicorn[standard]
 sqlalchemy
-psycopg2-binary
+psycopg[binary]
 pydantic
 openpyxl
+python-multipart
+
