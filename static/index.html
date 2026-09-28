@@ -474,6 +474,11 @@
             <tbody id="user-tbody"></tbody>
           </table>
         </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><h3>重复原材料检查</h3><button class="btn btn-sm" onclick="loadMatDups()">重新检查</button></div>
+          <p class="text-muted" style="font-size:12px;margin:0 0 10px;">同名原材料会导致配方扣减到没有库存的那一条。合并后，配方、采购、入库、出库、盘点、库存都会并入保留项。</p>
+          <div id="mat-dups"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -657,7 +662,7 @@ const PAGE_LOADERS = {
   salesimport: loadImportBatches,
   finance: loadFinance,
   reports: backReports,
-  settings: loadUsers,
+  settings: () => { loadUsers(); loadMatDups(); },
 };
 
 async function loadWarehouses() {
@@ -999,7 +1004,8 @@ async function approvePO(id) {
   let items = [];
   try {
     items = (await apiGet(`/api/purchase-order-items?purchase_order_id=${id}`)).sort((a, b) => a.id - b.id);
-    if (!CACHE.materials.length) CACHE.materials = await apiGet('/api/materials').catch(() => []);
+    // 每次都刷新：采购提交时会自动新建原材料，缓存里可能没有
+    CACHE.materials = await apiGet('/api/materials').catch(() => CACHE.materials);
   } catch (e) { console.error(e); }
 
   const sup = CACHE.suppliers.find(s => s.id === po.supplier_id);
@@ -1218,7 +1224,7 @@ async function approveSI(id) {
   if (!si) { toast('入库单不存在', 'error'); return; }
 
   const po = allPurchaseOrders.find(p => p.id === si.source_id);
-  const mats = CACHE.materials.length ? CACHE.materials : await apiGet('/api/materials').catch(() => []);
+  const mats = await apiGet('/api/materials').catch(() => CACHE.materials);
   CACHE.materials = mats;
 
   const rows = items.map(it => {
@@ -1530,7 +1536,7 @@ async function openBom(dishId) {
   currentBomDishId = dishId;
   document.getElementById('bom-card').style.display = 'block';
   document.getElementById('bom-dish-name').textContent = dishName;
-  if (!CACHE.materials.length) CACHE.materials = await apiGet('/api/materials').catch(() => []);
+  CACHE.materials = await apiGet('/api/materials').catch(() => CACHE.materials);
   const tbody = document.getElementById('bom-tbody');
   tbody.innerHTML = '<tr><td colspan="5" class="loading">加载中...</td></tr>';
   try {
@@ -2023,6 +2029,34 @@ function exportReportCsv() {
 }
 
 /* ========== 系统设置 ========== */
+/* ---------- 重复原材料合并 ---------- */
+async function loadMatDups() {
+  const box = document.getElementById('mat-dups');
+  if (!box) return;
+  box.innerHTML = '<div class="text-muted">检查中...</div>';
+  try {
+    const groups = await apiGet(`/api/materials-duplicates?store_id=${STORE_ID}`);
+    if (!groups.length) { box.innerHTML = '<div class="text-muted">✅ 没有发现重复的原材料</div>'; return; }
+    box.innerHTML = groups.map(g => `
+      <div style="border:1px solid var(--border,#E5E7EB);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+        <div style="font-weight:600;">${esc(g.name)}（${g.items.length} 条）</div>
+        <div class="text-muted" style="font-size:12px;margin:4px 0 8px;">
+          ${g.items.map(i => `ID ${i.id}｜${esc(i.unit)}｜库存 ${fmtQty(i.stock)}${i.id === g.keep_id ? '（建议保留）' : ''}`).join('<br>')}
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="mergeMats(${g.keep_id}, [${g.items.filter(i => i.id !== g.keep_id).map(i => i.id)}], '${esc(g.name)}')">合并到 ID ${g.keep_id}</button>
+      </div>`).join('');
+  } catch (e) { box.innerHTML = `<div class="text-muted">检查失败：${esc(e.message)}</div>`; }
+}
+async function mergeMats(keepId, removeIds, name) {
+  if (!confirm(`确认把「${name}」的重复记录 ${removeIds.join(',')} 合并到 ID ${keepId}？此操作不可撤销。`)) return;
+  try {
+    await apiPost('/api/materials-merge', { keep_id: keepId, remove_ids: removeIds });
+    toast('合并完成', 'success');
+    CACHE.materials = await apiGet('/api/materials').catch(() => CACHE.materials);
+    loadMatDups();
+  } catch (e) { toast('合并失败：' + e.message, 'error', 4000); }
+}
+
 let allUsers = [];
 async function loadUsers() {
   const tbody = document.getElementById('user-tbody');
