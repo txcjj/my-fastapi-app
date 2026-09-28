@@ -584,6 +584,50 @@ register_crud(Warehouse,         schemas.WarehouseIn,         "/warehouses",    
 register_crud(Category,          schemas.CategoryIn,          "/categories",          "分类",        "name")
 register_crud(Material,          schemas.MaterialIn,          "/materials",           "原材料",      "name")
 register_crud(Dish,              schemas.DishIn,              "/dishes",              "菜品",        "name")
+# 注意：/api/bom/batch 必须在通用 CRUD 的 /api/bom/{item_id} 之前注册，否则 "batch" 会被当成 item_id 导致 422
+# ---------- 5.1 配方：整单批量保存（事务内软删旧 + 插新，避免中途失败丢配方） ----------
+@app.put("/api/bom/batch", tags=["配方"], summary="按菜品批量保存配方（事务）")
+def save_bom_batch(payload: BomBatchIn, db: Session = Depends(get_db)):
+    dish = db.query(Dish).filter(Dish.id == payload.dish_id).first()
+    if not dish:
+        raise HTTPException(status_code=404, detail="菜品不存在")
+
+    items = [it for it in payload.items if it.material_id and it.quantity and it.quantity > 0]
+    if not items:
+        raise HTTPException(status_code=400, detail="请至少填写一条有效配方")
+
+    try:
+        # 软删该菜品现有生效配方
+        old = db.query(Bom).filter(
+            Bom.dish_id == payload.dish_id,
+            _bom_filter()
+        ).all()
+        for b in old:
+            b.is_active = False
+        db.flush()
+
+        # 插入新配方
+        created = []
+        for it in items:
+            b = Bom(
+                dish_id=payload.dish_id,
+                material_id=it.material_id,
+                quantity=it.quantity,
+                unit=it.unit,
+                loss_rate=it.loss_rate or 0,
+                version=1,
+                is_active=True,
+            )
+            db.add(b)
+            created.append(b)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.exception("批量保存配方失败")
+        raise HTTPException(status_code=500, detail=f"保存配方失败，已整体回滚：{e}")
+
+    return {"ok": True, "dish_id": payload.dish_id, "deactivated": len(old), "created": len(created)}
+
 register_crud(Bom,               schemas.BomItemIn,           "/bom",                 "配方")
 register_crud(PurchaseOrder,     schemas.PurchaseOrderIn,     "/purchase-orders",     "采购单",      "order_no", skip_ops=("update", "delete"))
 register_crud(StockIn,           schemas.StockInIn,           "/stock-in",            "入库单",      None, skip_ops=("update", "delete"))
@@ -776,50 +820,6 @@ def ensure_material(payload: EnsureMaterialIn, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_mat)
     return new_mat
-
-
-# ---------- 5.1 配方：整单批量保存（事务内软删旧 + 插新，避免中途失败丢配方） ----------
-@app.put("/api/bom/batch", tags=["配方"], summary="按菜品批量保存配方（事务）")
-def save_bom_batch(payload: BomBatchIn, db: Session = Depends(get_db)):
-    dish = db.query(Dish).filter(Dish.id == payload.dish_id).first()
-    if not dish:
-        raise HTTPException(status_code=404, detail="菜品不存在")
-
-    items = [it for it in payload.items if it.material_id and it.quantity and it.quantity > 0]
-    if not items:
-        raise HTTPException(status_code=400, detail="请至少填写一条有效配方")
-
-    try:
-        # 软删该菜品现有生效配方
-        old = db.query(Bom).filter(
-            Bom.dish_id == payload.dish_id,
-            _bom_filter()
-        ).all()
-        for b in old:
-            b.is_active = False
-        db.flush()
-
-        # 插入新配方
-        created = []
-        for it in items:
-            b = Bom(
-                dish_id=payload.dish_id,
-                material_id=it.material_id,
-                quantity=it.quantity,
-                unit=it.unit,
-                loss_rate=it.loss_rate or 0,
-                version=1,
-                is_active=True,
-            )
-            db.add(b)
-            created.append(b)
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        logger.exception("批量保存配方失败")
-        raise HTTPException(status_code=500, detail=f"保存配方失败，已整体回滚：{e}")
-
-    return {"ok": True, "dish_id": payload.dish_id, "deactivated": len(old), "created": len(created)}
 
 
 # ============================================================
